@@ -14,34 +14,6 @@ const Loading = () => (
   </Spinner>
 );
 
-/**
- *
- * @param {Array} params
- * @returns formatted payload for fetching population data
- */
-function createPayload(params) {
-  const populationParam = {
-    code: 'Tiedot',
-    selection: {
-      filter: 'item',
-      values: ['M411'],
-    },
-  };
-
-  const payload = {
-    query: [
-      populationParam,
-      ...params.map(d => ({
-        code: d.code,
-        selection: { filter: 'item', values: [d.value] },
-      })),
-    ],
-    response: { format: 'json' },
-  };
-
-  return payload;
-}
-
 function Authenticated() {
   const [keyFigures, setKeyFigures] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -49,9 +21,7 @@ function Authenticated() {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState(null);
-
   const [region, setRegion] = useState(null);
-  // const [dataType, setDataType] = useState(null);
   const [year, setYear] = useState(null);
 
   async function fetchKeyFigures() {
@@ -73,20 +43,19 @@ function Authenticated() {
 
     try {
       const response = await api.getData(payload);
-      setStats(response.data.data[0]);
+      setStats(response.data);
     } catch (error) {
       console.log(error);
       setStatsError(error);
     } finally {
       setTimeout(() => {
         setStatsLoading(false);
-      }, 300);
+      }, 200);
     }
   }
 
   const setSelection = (type, value) => {
-    if (type === 'Alue 2020') setRegion({ code: type, value });
-    /* if (type === 'Tiedot') setDataType({ code: type, value }); */
+    if (type === 'Alue 2021') setRegion({ code: type, value: value });
     if (type === 'Vuosi') setYear({ code: type, value });
   };
 
@@ -102,8 +71,10 @@ function Authenticated() {
    */
   useEffect(() => {
     if (region && year) {
-      const payload = createPayload([region, year]);
-      fetchData(payload);
+      fetchData({
+        city_query: region.value,
+        year: year.value,
+      });
     }
   }, [region, year]);
 
@@ -137,7 +108,7 @@ function Authenticated() {
             }}
           />
           <Card.Header>
-            <Card.Title>Kuntien väkiluvut alueittain (2020)</Card.Title>
+            <Card.Title>Kuntien väkiluvut alueittain (2021)</Card.Title>
             <Card.Subtitle>Valitse alue ja vuosi</Card.Subtitle>
             <div className="d-flex flex-row mt-4">
               {keyFigures?.variables &&
@@ -159,7 +130,7 @@ function Authenticated() {
                         <option disabled>{item.text}</option>
 
                         {item.valueTexts.map((text, i) => (
-                          <option value={item.values[i]} key={text}>
+                          <option value={item.valueTexts[i]} key={text}>
                             {text}
                           </option>
                         ))}
@@ -178,11 +149,15 @@ function Authenticated() {
               <React.Fragment>
                 {stats && (
                   <h3>
-                    Väkiluku: <b>{stats.values[0]}</b>
+                    Väkiluku: <b>{stats.value}</b>
                   </h3>
                 )}
                 {statsError && (
-                  <Alert variant="danger">Something went wrong.</Alert>
+                  <Alert variant="danger">
+                    {typeof statsError === 'object' && statsError?.detail?.msg
+                      ? statsError.detail.msg
+                      : 'Something went wrong.'}
+                  </Alert>
                 )}
               </React.Fragment>
             )}
