@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const FIGURES_URL =
-  'https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px';
+  'https://statfin.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px';
 const DATA_BASE_URL =
   process.env.NODE_ENV === 'production'
     ? 'http://localhost:8000' // ???

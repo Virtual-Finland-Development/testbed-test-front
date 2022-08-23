@@ -40,6 +40,8 @@ function Authenticated() {
 
   async function fetchData(payload) {
     setStatsLoading(true);
+    setStatsError(null);
+    setStats(null);
 
     try {
       const response = await api.getData(payload);
@@ -141,21 +143,30 @@ function Authenticated() {
           </Card.Header>
         </Card>
 
-        <div className="mt-5">
+        <div className="mt-4">
           <React.Fragment>
             {statsLoading ? (
               <Spinner animation="grow" variant="" />
             ) : (
               <React.Fragment>
                 {stats && (
-                  <h3>
-                    Väkiluku: <b>{stats.value}</b>
-                  </h3>
+                  <React.Fragment>
+                    <h3 className="mb-0">
+                      <span>{stats?.label || 'Väkiluku'}:</span>{' '}
+                      <span className="fw-bold">{stats?.value || ''}</span>
+                    </h3>
+                    {stats?.source && (
+                      <span className="d-block text-muted">
+                        Lähde: {stats.source}
+                      </span>
+                    )}
+                  </React.Fragment>
                 )}
                 {statsError && (
                   <Alert variant="danger">
-                    {typeof statsError === 'object' && statsError?.detail?.msg
-                      ? statsError.detail.msg
+                    {typeof statsError === 'object' &&
+                    statsError?.response?.data?.detail
+                      ? statsError.response.data.detail
                       : 'Something went wrong.'}
                   </Alert>
                 )}
