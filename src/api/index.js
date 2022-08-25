@@ -6,7 +6,7 @@ const DATA_BASE_URL =
   process.env.NODE_ENV === 'production'
     ? 'http://localhost:8000' // ???
     : 'http://localhost:8000';
-const DATA_URL = `${DATA_BASE_URL}/test/undefined/population`;
+const DATA_URL = `${DATA_BASE_URL}/test/Figure/Population`;
 
 async function getKeyFigures() {
   return axios.get(`${FIGURES_URL}`);
