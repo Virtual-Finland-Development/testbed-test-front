@@ -154,9 +154,9 @@ function Authenticated() {
                       <span>{stats?.description || 'Väkiluku'}:</span>{' '}
                       <span className="fw-bold">{stats?.population || ''}</span>
                     </h3>
-                    {stats?.source_name && (
+                    {stats?.sourceName && (
                       <span className="d-block text-muted">
-                        Lähde: {stats.source_name}
+                        Lähde: {stats.sourceName}
                       </span>
                     )}
                   </React.Fragment>
