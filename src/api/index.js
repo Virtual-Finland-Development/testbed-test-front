@@ -17,6 +17,7 @@ async function getData(payload) {
 }
 
 const api = {
+  DATA_URL,
   getKeyFigures,
   getData,
 };

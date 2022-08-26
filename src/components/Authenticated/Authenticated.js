@@ -31,7 +31,6 @@ function Authenticated() {
       const response = await api.getKeyFigures();
       setKeyFigures(response.data);
     } catch (error) {
-      console.log(error);
       setError(error);
     } finally {
       setLoading(false);
@@ -47,7 +46,6 @@ function Authenticated() {
       const response = await api.getData(payload);
       setStats(response.data);
     } catch (error) {
-      console.log(error);
       setStatsError(error);
     } finally {
       setTimeout(() => {
@@ -121,6 +119,7 @@ function Authenticated() {
 
                     return (
                       <Form.Select
+                        data-testid={`selection-input-${i}`}
                         key={item.code}
                         style={{ maxWidth: 300 }}
                         className="me-4"
