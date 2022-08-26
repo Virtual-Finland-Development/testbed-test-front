@@ -152,12 +152,12 @@ function Authenticated() {
                 {stats && (
                   <React.Fragment>
                     <h3 className="mb-0">
-                      <span>{stats?.label || 'Väkiluku'}:</span>{' '}
-                      <span className="fw-bold">{stats?.value || ''}</span>
+                      <span>{stats?.description || 'Väkiluku'}:</span>{' '}
+                      <span className="fw-bold">{stats?.population || ''}</span>
                     </h3>
-                    {stats?.source && (
+                    {stats?.source_name && (
                       <span className="d-block text-muted">
-                        Lähde: {stats.source}
+                        Lähde: {stats.source_name}
                       </span>
                     )}
                   </React.Fragment>
