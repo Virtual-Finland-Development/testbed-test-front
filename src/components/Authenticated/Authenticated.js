@@ -74,7 +74,7 @@ function Authenticated() {
   useEffect(() => {
     if (region && year) {
       fetchData({
-        city_query: region.value,
+        city: region.value,
         year: year.value,
       });
     }
