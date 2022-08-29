@@ -18,7 +18,7 @@ const DATA_ENDPOINT_PATH = 'test/lsipii/Figure/Population'; // The data path
 const DATA_QUERY_PARAMS = 'source=virtual_finland'; // The data source pin-pointer queryparam for the testbed
 
 const DATA_BASE_URL =
-  process.env.NODE_ENV !== 'production'
+  process.env.NODE_ENV === 'production'
     ? PRODUCTION_ENDPOINT
     : 'http://localhost:8000';
 const DATA_URL = `${DATA_BASE_URL}/${DATA_ENDPOINT_PATH}?${DATA_QUERY_PARAMS}`;
