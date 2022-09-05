@@ -1,5 +1,5 @@
 // render and screen imported from utils, where we override render to include AppProvider as a wrapper
-import { render, screen } from '../src/test-utils/testing-library-utils';
+import { render, screen } from './test-utils/testing-library-utils';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 

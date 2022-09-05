@@ -6,23 +6,50 @@ import {
   useContext,
 } from 'react';
 
+interface AppState {
+  authenticated: boolean;
+}
+
+enum ActionTypes {
+  LOG_IN = 'LOG_IN',
+  LOG_OUT = 'LOG_OUT',
+}
+
+interface LogInAction {
+  type: ActionTypes.LOG_IN;
+}
+
+interface LogOutAction {
+  type: ActionTypes.LOG_OUT;
+}
+
+type Action = LogInAction | LogOutAction;
+
+interface AppContextInterface {
+  authenticated: boolean;
+  logIn: () => void;
+  logOut: () => void;
+}
+
+interface AppProviderProps {
+  children: React.ReactElement;
+}
+
 const LOCAL_STORAGE_KEY = 'testbed-authenticated';
 
 /**
  * State reduder
  */
-const LOG_IN = 'LOG_IN';
-const LOG_OUT = 'LOG_OUT';
-const initialState = { authenticated: false };
+const initialState: AppState = { authenticated: false };
 
-function reducer(state, action) {
+function reducer(state: AppState, action: Action) {
   switch (action.type) {
-    case LOG_IN:
+    case ActionTypes.LOG_IN:
       return {
         ...state,
         authenticated: true,
       };
-    case LOG_OUT:
+    case ActionTypes.LOG_OUT:
       return {
         ...state,
         authenticated: false,
@@ -35,10 +62,10 @@ function reducer(state, action) {
 /**
  * App Context
  */
-const AppContext = createContext(null);
+const AppContext = createContext<AppContextInterface | undefined>(undefined);
 const AppConsumer = AppContext.Consumer;
 
-function AppProvider({ children }) {
+function AppProvider({ children }: AppProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { authenticated } = state;
 
@@ -46,17 +73,17 @@ function AppProvider({ children }) {
     const isLoggedIn = localStorage.getItem(LOCAL_STORAGE_KEY);
 
     if (isLoggedIn) {
-      dispatch({ type: LOG_IN });
+      dispatch({ type: ActionTypes.LOG_IN });
     }
   }, []);
 
   const logIn = useCallback(() => {
-    dispatch({ type: LOG_IN });
-    localStorage.setItem(LOCAL_STORAGE_KEY, true);
+    dispatch({ type: ActionTypes.LOG_IN });
+    localStorage.setItem(LOCAL_STORAGE_KEY, 'true');
   }, []);
 
   const logOut = useCallback(() => {
-    dispatch({ type: LOG_OUT });
+    dispatch({ type: ActionTypes.LOG_OUT });
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   }, []);
 
@@ -77,7 +104,7 @@ function AppProvider({ children }) {
  * useAppContext hook
  */
 function useAppContext() {
-  const context = useContext(AppContext);
+  const context = useContext(AppContext) as AppContextInterface;
 
   if (context === undefined || context === null) {
     throw new Error('useAppContext must be used within AppProvider');

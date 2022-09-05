@@ -1,9 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Card, Form, Spinner, Alert } from 'react-bootstrap';
+import Container from 'react-bootstrap/Container';
+import Card from 'react-bootstrap/Card';
+import Form from 'react-bootstrap/Form';
+import Spinner from 'react-bootstrap/Spinner';
+import Alert from 'react-bootstrap/Alert';
 import suomilandscape from '../../suomilandscape.jpeg';
 
 // api
 import api from '../../api';
+
+interface KeyFiguresOption {
+  code: string;
+  text: string;
+  valueTexts: string[];
+  values: string[];
+}
+
+interface KeyFigures {
+  title: string;
+  variables: KeyFiguresOption[];
+}
+
+interface Stats {
+  description: string;
+  population: number;
+  sourceName: string;
+  updatedAt: string;
+}
 
 /**
  * Loading spinner component
@@ -15,14 +38,18 @@ const Loading = () => (
 );
 
 function Authenticated() {
-  const [keyFigures, setKeyFigures] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(false);
-  const [statsError, setStatsError] = useState(null);
-  const [region, setRegion] = useState(null);
-  const [year, setYear] = useState(null);
+  const [keyFigures, setKeyFigures] = useState<KeyFigures | null>(null);
+  const [loading, setLoading] = useState<Boolean>(false);
+  const [error, setError] = useState<any>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = useState<Boolean>(false);
+  const [statsError, setStatsError] = useState<any>(null);
+  const [region, setRegion] = useState<{ code: string; value: string } | null>(
+    null
+  );
+  const [year, setYear] = useState<{ code: string; value: string } | null>(
+    null
+  );
 
   async function fetchKeyFigures() {
     setLoading(true);
@@ -37,7 +64,7 @@ function Authenticated() {
     }
   }
 
-  async function fetchData(payload) {
+  async function fetchData(payload: { city: string; year: string }) {
     setStatsLoading(true);
     setStatsError(null);
     setStats(null);
@@ -54,8 +81,8 @@ function Authenticated() {
     }
   }
 
-  const setSelection = (type, value) => {
-    if (type === 'Alue 2021') setRegion({ code: type, value: value });
+  const setSelection = (type: string, value: string) => {
+    if (type === 'Alue 2021') setRegion({ code: type, value });
     if (type === 'Vuosi') setYear({ code: type, value });
   };
 
@@ -112,10 +139,10 @@ function Authenticated() {
             <Card.Subtitle>Valitse alue ja vuosi</Card.Subtitle>
             <div className="d-flex flex-row mt-4">
               {keyFigures?.variables &&
-                Object.keys(keyFigures.variables)
-                  .filter((key, i) => i !== 1)
-                  .map((key, i) => {
-                    const item = keyFigures.variables[key];
+                Object.entries(keyFigures.variables)
+                  .filter(([key, value], i) => i !== 1)
+                  .map(([key, value], i) => {
+                    const item: KeyFiguresOption = value;
 
                     return (
                       <Form.Select

@@ -22,7 +22,7 @@ async function getKeyFigures() {
   return axios.get(`${FIGURES_URL}`);
 }
 
-async function getData(payload) {
+async function getData(payload: { city: string; year: string }) {
   return axios.post(`${DATA_URL}`, payload);
 }
 
