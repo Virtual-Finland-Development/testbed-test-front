@@ -5,9 +5,23 @@ import {
   useReducer,
   useContext,
 } from 'react';
+import { useNavigate, useMatch } from 'react-router-dom';
+
+// constants
+import {
+  LOCAL_STORAGE_AUTH_KEY,
+  LOCAL_STORAGE_DATA_TYPE,
+  RouteNames,
+} from '../constants';
+
+enum DataType {
+  OPEN_DATA = 'OPEN_DATA',
+  TMT = 'TMT',
+}
 
 interface AppState {
   authenticated: boolean;
+  dataType: DataType;
 }
 
 enum ActionTypes {
@@ -17,6 +31,7 @@ enum ActionTypes {
 
 interface LogInAction {
   type: ActionTypes.LOG_IN;
+  dataType: DataType;
 }
 
 interface LogOutAction {
@@ -27,7 +42,8 @@ type Action = LogInAction | LogOutAction;
 
 interface AppContextInterface {
   authenticated: boolean;
-  logIn: () => void;
+  dataType: string;
+  logIn: (dataType: DataType) => void;
   logOut: () => void;
 }
 
@@ -35,12 +51,13 @@ interface AppProviderProps {
   children: React.ReactElement;
 }
 
-const LOCAL_STORAGE_KEY = 'testbed-authenticated';
-
 /**
  * State reduder
  */
-const initialState: AppState = { authenticated: false };
+const initialState: AppState = {
+  authenticated: false,
+  dataType: DataType.OPEN_DATA,
+};
 
 function reducer(state: AppState, action: Action) {
   switch (action.type) {
@@ -48,6 +65,7 @@ function reducer(state: AppState, action: Action) {
       return {
         ...state,
         authenticated: true,
+        dataType: action.dataType,
       };
     case ActionTypes.LOG_OUT:
       return {
@@ -67,30 +85,69 @@ const AppConsumer = AppContext.Consumer;
 
 function AppProvider({ children }: AppProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { authenticated } = state;
+  const { authenticated, dataType } = state;
+  const navigate = useNavigate();
+  const rootMatch = useMatch('/');
 
+  /**
+   * If loggedIn & dataType flag is found in local storage, log user in automatically.
+   */
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const isLoggedIn = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+    const dataType = localStorage.getItem(LOCAL_STORAGE_DATA_TYPE) as DataType;
 
-    if (isLoggedIn) {
-      dispatch({ type: ActionTypes.LOG_IN });
+    if (isLoggedIn && dataType) {
+      dispatch({ type: ActionTypes.LOG_IN, dataType });
     }
   }, []);
 
-  const logIn = useCallback(() => {
-    dispatch({ type: ActionTypes.LOG_IN });
-    localStorage.setItem(LOCAL_STORAGE_KEY, 'true');
-  }, []);
+  /**
+   * If authenticated and dataType set and user navigates to root, redirect to correct route.
+   */
+  useEffect(() => {
+    if (authenticated && dataType) {
+      if (rootMatch) {
+        if (dataType === DataType.OPEN_DATA) {
+          navigate(RouteNames.OPEN_DATA);
+        }
 
+        if (dataType === DataType.TMT) {
+          navigate(RouteNames.TMT);
+        }
+      }
+    }
+  }, [dataType, authenticated, navigate, rootMatch]);
+
+  /**
+   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage. Navigate to correct route based on selection.
+   */
+  const logIn = useCallback(
+    (dataType: DataType) => {
+      dispatch({ type: ActionTypes.LOG_IN, dataType });
+      localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, 'true');
+      localStorage.setItem(LOCAL_STORAGE_DATA_TYPE, dataType);
+      const route =
+        dataType === DataType.OPEN_DATA ? RouteNames.OPEN_DATA : RouteNames.TMT;
+      navigate(route);
+    },
+    [navigate]
+  );
+
+  /**
+   * Handle log out. Clear authenntication state, clear local storage. Navigate to root.
+   */
   const logOut = useCallback(() => {
     dispatch({ type: ActionTypes.LOG_OUT });
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-  }, []);
+    localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_DATA_TYPE);
+    navigate('/');
+  }, [navigate]);
 
   return (
     <AppContext.Provider
       value={{
         authenticated,
+        dataType,
         logIn,
         logOut,
       }}
@@ -113,4 +170,4 @@ function useAppContext() {
   return context;
 }
 
-export { AppContext, AppProvider, AppConsumer, useAppContext };
+export { AppContext, AppProvider, AppConsumer, useAppContext, DataType };

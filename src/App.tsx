@@ -8,7 +8,7 @@ import { AppProvider, AppConsumer } from './context/AppContext';
 
 // components
 import Login from './components/Login/Login';
-import Authenticated from './components/Authenticated/Authenticated';
+import AppRoutes from './components/AppRoutes/AppRoutes';
 
 function App() {
   return (
@@ -26,7 +26,7 @@ function App() {
               return (
                 <React.Fragment>
                   <main className="d-flex flex-column flex-fill w-100 justify-content-center align-items-center p-4">
-                    {!authenticated ? <Login /> : <Authenticated />}
+                    {!authenticated ? <Login /> : <AppRoutes />}
                   </main>
                   <footer className="px-4 py-5 text-muted">
                     <Container>

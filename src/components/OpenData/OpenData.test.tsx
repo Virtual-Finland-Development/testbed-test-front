@@ -4,9 +4,9 @@ import { rest } from 'msw';
 import { server } from '../../mocks/server';
 import { handlers } from '../../mocks/handlers';
 import api from '../../api';
-import Authenticated from './Authenticated';
+import OpenData from './OpenData';
 
-const setup = () => render(<Authenticated />);
+const setup = () => render(<OpenData />);
 
 describe('Authentication component interactions', () => {
   test('should show region and year selection after figures has been loaded', async () => {

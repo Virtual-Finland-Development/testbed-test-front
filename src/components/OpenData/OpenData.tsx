@@ -6,6 +6,9 @@ import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
 import suomilandscape from '../../suomilandscape.jpeg';
 
+// components
+import Loading from '../Loading/Loading';
+
 // api
 import api from '../../api';
 
@@ -28,16 +31,7 @@ interface Stats {
   updatedAt: string;
 }
 
-/**
- * Loading spinner component
- */
-const Loading = () => (
-  <Spinner animation="border" role="status">
-    <span className="visually-hidden">Ladataan...</span>
-  </Spinner>
-);
-
-function Authenticated() {
+export default function OpenData() {
   const [keyFigures, setKeyFigures] = useState<KeyFigures | null>(null);
   const [loading, setLoading] = useState<Boolean>(false);
   const [error, setError] = useState<any>(null);
@@ -75,9 +69,7 @@ function Authenticated() {
     } catch (error) {
       setStatsError(error);
     } finally {
-      setTimeout(() => {
-        setStatsLoading(false);
-      }, 200);
+      setStatsLoading(false);
     }
   }
 
@@ -123,7 +115,7 @@ function Authenticated() {
 
   return (
     <div className="w-100 h-100 d-flex">
-      <Container className="">
+      <Container>
         <Card className="shadow">
           <Card.Img
             variant="top"
@@ -204,5 +196,3 @@ function Authenticated() {
     </div>
   );
 }
-
-export default Authenticated;
