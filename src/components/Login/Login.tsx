@@ -1,41 +1,36 @@
-import { useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
 // context
-import { useAppContext, DataType } from '../../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
+
+// api
+import api from '../../api';
+
+// constants
+import { appContextBase64 } from '../../constants';
 
 function Login() {
   const { logIn } = useAppContext();
-  const [type, setType] = useState<DataType | null>(null);
+
+  /**
+   * Handle login button click. Redirect user to auth gw login request route.
+   * Pass 'appContextBase64' token as query param.
+   */
+  const handleLoginClick = () => {
+    window.location.href = `${api.AUTH_GW_ENDPOINT}/auth/openid/login-request?appContext=${appContextBase64}`;
+  };
 
   return (
     <Container>
       <div className="d-flex justify-content-center">
-        <Card className="shadow" style={{ maxWidth: 400 }}>
+        <Card className="shadow" style={{ maxWidth: 400, minWidth: 330 }}>
           <Card.Header className="d-flex justify-content-center">
-            <Card.Title>Valitse tietotyyppi ja kirjaudu</Card.Title>
+            <Card.Title>Testbed test application</Card.Title>
           </Card.Header>
-          <Card.Body className="d-flex flex-column justify-content-center py-5">
-            <Form.Select
-              defaultValue=""
-              onChange={({ target }) => setType(target.value as DataType)}
-            >
-              <option disabled></option>
-              <option value={DataType.OPEN_DATA}>
-                Kuntien väkiluvut alueittain (2021)
-              </option>
-              <option value={DataType.TMT}>Työmarkkinatori</option>
-            </Form.Select>
-            <Button
-              className="mt-4"
-              onClick={() => logIn(type as DataType)}
-              disabled={!type}
-            >
-              Kirjaudu
-            </Button>
+          <Card.Body className="d-flex justify-content-center py-5">
+            <Button onClick={() => logIn('dummyToken')}>Kirjaudu</Button>
           </Card.Body>
         </Card>
       </div>

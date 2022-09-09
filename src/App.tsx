@@ -1,59 +1,54 @@
 import React from 'react';
 import Container from 'react-bootstrap/Container';
-import Button from 'react-bootstrap/Button';
 import './App.css';
 
 // context
 import { AppProvider, AppConsumer } from './context/AppContext';
 
 // components
-import Login from './components/Login/Login';
+import LoginRoutes from './components/LoginRoutes/LoginRoutes';
 import AppRoutes from './components/AppRoutes/AppRoutes';
+import LogOut from './components/LogOut/LogOut';
 
 function App() {
   return (
-    <div className="vh-100 w-100 overflow-hidden">
-      <div className="w-100 h-100 d-flex flex-column align-self-center overflow-auto">
-        <AppProvider>
-          <AppConsumer>
-            {provider => {
-              if (typeof provider === 'undefined') {
-                return null;
-              }
+    <div className="w-100 h-100 d-flex flex-column align-self-center overflow-auto">
+      <AppProvider>
+        <AppConsumer>
+          {provider => {
+            if (typeof provider === 'undefined') {
+              return null;
+            }
 
-              const { authenticated, logOut } = provider;
+            const { authenticated } = provider;
 
-              return (
-                <React.Fragment>
-                  <main className="d-flex flex-column flex-fill w-100 justify-content-center align-items-center p-4">
-                    {!authenticated ? <Login /> : <AppRoutes />}
-                  </main>
-                  <footer className="px-4 py-5 text-muted">
-                    <Container>
-                      <div className="d-flex align-items-center position-relative">
-                        <div className="flex-fill d-flex align-items-center justify-content-md-center">
-                          Testbed test application
-                        </div>
-                        {authenticated && (
-                          <div className="position-absolute end-0">
-                            <Button
-                              variant="link"
-                              onClick={logOut}
-                              style={{ padding: 0 }}
-                            >
-                              Kirjaudu ulos
-                            </Button>
-                          </div>
-                        )}
+            return (
+              <React.Fragment>
+                <main
+                  className="d-flex flex-column flex-fill w-100 justify-content-center align-items-center p-4"
+                  id="main"
+                >
+                  {!authenticated ? <LoginRoutes /> : <AppRoutes />}
+                </main>
+                <footer className="px-4 py-5 text-muted">
+                  <Container>
+                    <div className="d-flex align-items-center position-relative">
+                      <div className="flex-fill d-flex align-items-center justify-content-md-center">
+                        Testbed test application
                       </div>
-                    </Container>
-                  </footer>
-                </React.Fragment>
-              );
-            }}
-          </AppConsumer>
-        </AppProvider>
-      </div>
+                      {authenticated && (
+                        <div className="position-absolute end-0">
+                          <LogOut />
+                        </div>
+                      )}
+                    </div>
+                  </Container>
+                </footer>
+              </React.Fragment>
+            );
+          }}
+        </AppConsumer>
+      </AppProvider>
     </div>
   );
 }

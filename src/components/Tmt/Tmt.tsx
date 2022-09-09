@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
@@ -10,6 +10,7 @@ import jobs from '../../jobs.png';
 // components
 import JobItem from './JobItem';
 import Loading from '../Loading/Loading';
+import Pagination from '../Pagination/Pagination';
 
 const selectInputs = [
   {
@@ -22,13 +23,33 @@ const selectInputs = [
   },
 ];
 
+const itemsPerPage = 10;
+
+function scrollToTop() {
+  const mainElement = document.getElementById('main');
+
+  if (typeof mainElement?.scrollIntoView === 'function') {
+    mainElement.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
 export default function Tmt() {
   const [region, setRegion] = useState<string>('');
   const [type, setType] = useState<string>('');
   const [data, setData] = useState<any>(null);
   const [dataLoading, setDataLoading] = useState<boolean>(false);
 
-  console.log(mockData);
+  const [currentItems, setCurrentItems] = useState<any[] | null>(null);
+  const [pageCount, setPageCount] = useState<number>(0);
+  const [itemOffset, setItemOffset] = useState<number>(0);
+
+  useEffect(() => {
+    const endOffset = itemOffset + itemsPerPage;
+    setCurrentItems(mockData.content.slice(itemOffset, endOffset));
+    setPageCount(Math.ceil(mockData.content.length / itemsPerPage));
+  }, [itemOffset]);
+
+  // console.log(mockData);
 
   const fetchData = async () => {
     setDataLoading(true);
@@ -50,9 +71,15 @@ export default function Tmt() {
     if (type === 'Työnimike') setType(value);
   };
 
+  const handlePageClick = (selected: number) => {
+    scrollToTop();
+    const newOffset = (selected * itemsPerPage) % mockData.content.length;
+    setItemOffset(newOffset);
+  };
+
   return (
     <div className="w-100 h-100 d-flex">
-      <Container>
+      <Container id="tmt">
         <Card className="shadow">
           <Card.Img
             variant="top"
@@ -96,12 +123,21 @@ export default function Tmt() {
           </div>
         )}
 
-        {!dataLoading && data && (
-          <div className="mt-4 d-flex flex-column" style={{ gap: '1rem' }}>
-            {data.content.map((item: any) => (
-              <JobItem key={item.id} item={item} />
-            ))}
-          </div>
+        {!dataLoading && data && currentItems && (
+          <React.Fragment>
+            <div className="mt-4 d-flex flex-column" style={{ gap: '1rem' }}>
+              {currentItems.map((item: any) => (
+                <JobItem key={item.id} item={item} />
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <Pagination
+                pageCount={pageCount}
+                onPageChange={handlePageClick}
+              />
+            </div>
+          </React.Fragment>
         )}
       </Container>
     </div>

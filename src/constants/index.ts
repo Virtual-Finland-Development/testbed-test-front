@@ -1,7 +1,21 @@
-export const LOCAL_STORAGE_AUTH_KEY = 'testbed-authenticated';
-export const LOCAL_STORAGE_DATA_TYPE = 'testbed-data-type';
+import { base64Encode } from '../utils';
+
+export const LOCAL_STORAGE_AUTH_TOKEN = 'testbed-authToken';
+export const LOCAL_STORAGE_DATA_TYPE = 'testbed-dataType';
 
 export enum RouteNames {
   OPEN_DATA = 'opendata',
   TMT = 'tmt',
 }
+
+export const applicationUrl =
+  process.env.NODE_ENV === 'production'
+    ? 'https://d1117tsgnqi5r8.cloudfront.net/'
+    : 'http://localhost:3000';
+
+export const applicationContextObj = {
+  appName: 'testbed-test-front',
+  redirectUrl: `${applicationUrl}/auth`,
+};
+
+export const appContextBase64 = base64Encode(applicationContextObj);
