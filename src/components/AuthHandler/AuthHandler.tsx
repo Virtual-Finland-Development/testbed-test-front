@@ -39,7 +39,6 @@ export default function AuthHandler() {
       logIn(token);
       navigate('/');
     } catch (error) {
-      // const error = err as AxiosError;
       setError(error);
     } finally {
       setLoading(false);
