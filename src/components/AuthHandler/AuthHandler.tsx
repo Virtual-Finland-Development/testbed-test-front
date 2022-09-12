@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 
 // context
@@ -18,6 +18,7 @@ export default function AuthHandler() {
   const { logIn, logOut } = useAppContext();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<any>(null);
+  const navigate = useNavigate();
 
   // parse url params
   const queryString = window.location.search;
@@ -26,7 +27,7 @@ export default function AuthHandler() {
   const logOutParam = urlParams.get('logout');
 
   /**
-   * Handle authentication.
+   * Handle authentication. Navigate to root.
    */
   const handleAuthentication = useCallback(async () => {
     try {
@@ -36,13 +37,14 @@ export default function AuthHandler() {
       });
       const { token } = response.data;
       logIn(token);
+      navigate('/');
     } catch (error) {
       // const error = err as AxiosError;
       setError(error);
     } finally {
       setLoading(false);
     }
-  }, [logIn, loginCodeParam]);
+  }, [logIn, loginCodeParam, navigate]);
 
   /**
    * If loginCode provided in url params, try authenticate the user.
@@ -54,18 +56,19 @@ export default function AuthHandler() {
   }, [handleAuthentication, loginCodeParam]);
 
   /**
-   * If logout redirect and logout flag in url params, log out user;
+   * If logout redirect and logout flag in url params, log out user. Navigate to root.
    */
   useEffect(() => {
     if (logOutParam) {
       if (logOutParam === 'success') {
         logOut();
+        navigate('/');
       } else {
         setLoading(false);
         setError({ message: 'Logout request failed.' });
       }
     }
-  }, [logOut, logOutParam]);
+  }, [logOut, logOutParam, navigate]);
 
   if (loading) {
     return <Loading />;

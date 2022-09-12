@@ -5,7 +5,6 @@ import {
   useReducer,
   useContext,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 // constants
 import { LOCAL_STORAGE_AUTH_TOKEN } from '../constants';
@@ -72,8 +71,6 @@ const AppConsumer = AppContext.Consumer;
 function AppProvider({ children }: AppProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { authenticated } = state;
-  const navigate = useNavigate();
-  // const rootMatch = useMatch('/');
 
   /**
    * If auth token is found in local storage, log user in automatically.
@@ -87,25 +84,20 @@ function AppProvider({ children }: AppProviderProps) {
   }, []);
 
   /**
-   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage. Navigate to correct route based on selection. Navigate to root.
+   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage. Navigate to correct route based on selection.
    */
-  const logIn = useCallback(
-    (token: string) => {
-      dispatch({ type: ActionTypes.LOG_IN });
-      localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
-      navigate('/');
-    },
-    [navigate]
-  );
+  const logIn = useCallback((token: string) => {
+    dispatch({ type: ActionTypes.LOG_IN });
+    localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
+  }, []);
 
   /**
-   * Handle log out. Clear authenntication state, clear local storage. Navigate to root.
+   * Handle log out. Clear authenntication state, clear local storage.
    */
   const logOut = useCallback(() => {
     dispatch({ type: ActionTypes.LOG_OUT });
     localStorage.removeItem(LOCAL_STORAGE_AUTH_TOKEN);
-    navigate('/');
-  }, [navigate]);
+  }, []);
 
   return (
     <AppContext.Provider
