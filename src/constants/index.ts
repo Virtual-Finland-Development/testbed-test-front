@@ -10,7 +10,7 @@ export enum RouteNames {
 
 export const applicationUrl =
   process.env.NODE_ENV === 'production'
-    ? 'https://d1117tsgnqi5r8.cloudfront.net/'
+    ? 'https://d1117tsgnqi5r8.cloudfront.net'
     : 'http://localhost:3000';
 
 export const applicationContextObj = {
