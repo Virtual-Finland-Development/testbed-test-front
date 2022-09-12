@@ -45,7 +45,7 @@ describe('Authentication component interactions', () => {
     // reset the second handler to throw an error
     server.resetHandlers(
       handlers[0],
-      rest.post(api.DATA_URL, (req, res, ctx) => res(ctx.status(500)))
+      rest.post(api.OPEN_DATA_URL, (req, res, ctx) => res(ctx.status(500)))
     );
 
     const selectInputs = await screen.findAllByTestId('selection-input-', {

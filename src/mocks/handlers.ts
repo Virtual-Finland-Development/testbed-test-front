@@ -30,7 +30,7 @@ export const handlers = [
       );
     }
   ),
-  rest.post(api.DATA_URL, (req, res, ctx) => {
+  rest.post(api.OPEN_DATA_URL, (req, res, ctx) => {
     return res(
       ctx.json({
         description: 'Väkiluku, Akaa, 2010',

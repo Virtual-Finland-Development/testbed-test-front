@@ -1,29 +1,40 @@
+import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
-
-// context
-import { useAppContext } from '../../context/AppContext';
+import Spinner from 'react-bootstrap/Spinner';
 
 // api
 import api from '../../api';
 
 // constants
-import { appContextBase64 } from '../../constants';
+import { appContextUrlEncoded } from '../../constants';
 
 export default function LogOut() {
-  const { logOut } = useAppContext();
+  const [isLoading, setIsLoading] = useState(false);
 
   /**
    * Handle log out button click. Redirect user to auth gw logout request route.
-   * Pass 'appContextBase64' token as query param.
+   * Pass 'appContextUrlEncoded' token as query param.
    */
   const handleLogOutClick = () => {
-    logOut();
-    // window.location.href = `${api.AUTH_GW_ENDPOINT}/auth/openid/logout-request?appContext=${appContextBase64}`;
+    setIsLoading(true);
+    window.location.assign(
+      `${api.AUTH_GW_ENDPOINT}/auth/openid/logout-request?appContext=${appContextUrlEncoded}`
+    );
   };
 
   return (
     <Button variant="link" onClick={handleLogOutClick} style={{ padding: 0 }}>
-      Kirjaudu ulos
+      {isLoading && (
+        <Spinner
+          as="span"
+          animation="border"
+          size="sm"
+          role="status"
+          aria-hidden="true"
+          className="me-3"
+        />
+      )}
+      <span>{isLoading ? 'Kirjaudutaan ulos...' : 'Kirjaudu ulos'}</span>
     </Button>
   );
 }

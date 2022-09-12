@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 
 describe('Test app authentication based rendering', () => {
-  test('<Login /> should be shown before authentication, <AppRoutes /> should show after authentication', async () => {
+  test.skip('<Login /> should be shown before authentication, <AppRoutes /> should show after authentication', async () => {
     render(<App />);
 
     // login component should be shown, login button should be in the document

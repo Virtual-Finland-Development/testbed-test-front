@@ -87,12 +87,16 @@ function AppProvider({ children }: AppProviderProps) {
   }, []);
 
   /**
-   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage. Navigate to correct route based on selection.
+   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage. Navigate to correct route based on selection. Navigate to root.
    */
-  const logIn = useCallback((token: string) => {
-    dispatch({ type: ActionTypes.LOG_IN });
-    localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
-  }, []);
+  const logIn = useCallback(
+    (token: string) => {
+      dispatch({ type: ActionTypes.LOG_IN });
+      localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
+      navigate('/');
+    },
+    [navigate]
+  );
 
   /**
    * Handle log out. Clear authenntication state, clear local storage. Navigate to root.

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 
 // context
@@ -11,7 +12,7 @@ import Loading from '../Loading/Loading';
 import api from '../../api';
 
 // constants
-import { appContextBase64 } from '../../constants';
+import { appContextUrlEncoded } from '../../constants';
 
 export default function AuthHandler() {
   const { logIn, logOut } = useAppContext();
@@ -21,7 +22,7 @@ export default function AuthHandler() {
   // parse url params
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
-  const loginCodeParam = urlParams.get('code')!;
+  const loginCodeParam = urlParams.get('loginCode')!;
   const logOutParam = urlParams.get('logout');
 
   /**
@@ -31,7 +32,7 @@ export default function AuthHandler() {
     try {
       const response = await api.getAuthToken({
         loginCode: loginCodeParam,
-        appContext: appContextBase64,
+        appContext: appContextUrlEncoded,
       });
       const { token } = response.data;
       logIn(token);
@@ -57,7 +58,12 @@ export default function AuthHandler() {
    */
   useEffect(() => {
     if (logOutParam) {
-      logOut();
+      if (logOutParam === 'success') {
+        logOut();
+      } else {
+        setLoading(false);
+        setError({ message: 'Logout request failed.' });
+      }
     }
   }, [logOut, logOutParam]);
 
@@ -72,8 +78,9 @@ export default function AuthHandler() {
           {error.message ?? 'Unknown error occured.'}
         </span>
         {error?.response?.data?.message ?? (
-          <span>{error.response.data.message}</span>
+          <span className="d-block">{error.response.data.message}</span>
         )}
+        <Link to="/">Palaa alkuun</Link>
       </Alert>
     );
   }
