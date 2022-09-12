@@ -1,7 +1,7 @@
 import { generateAppContext } from '../utils';
 
 export const LOCAL_STORAGE_AUTH_TOKEN = 'testbed-authToken';
-export const LOCAL_STORAGE_DATA_TYPE = 'testbed-dataType';
+export const LOCAL_STORAGE_USER_EMAIL = 'testbed-userEmail';
 
 export enum RouteNames {
   OPEN_DATA = 'opendata',

@@ -31,12 +31,21 @@ export default function AuthHandler() {
    */
   const handleAuthentication = useCallback(async () => {
     try {
-      const response = await api.getAuthToken({
+      // get token
+      const tokenResponse = await api.getAuthToken({
         loginCode: loginCodeParam,
         appContext: appContextUrlEncoded,
       });
-      const { token } = response.data;
-      logIn(token);
+      const { token } = tokenResponse.data;
+
+      // get user email after token retrieval
+      const userInfoResponse = await api.getUserInfo({
+        token,
+        appContext: appContextUrlEncoded,
+      });
+      const { email: userEmail } = userInfoResponse.data;
+
+      logIn(token, userEmail);
       navigate('/');
     } catch (error) {
       setError(error);
@@ -79,7 +88,7 @@ export default function AuthHandler() {
         <span className="d-block fw-bold">
           {error.message ?? 'Unknown error occured.'}
         </span>
-        {error?.response?.data?.message ?? (
+        {error?.response?.data?.message && (
           <span className="d-block">{error.response.data.message}</span>
         )}
         <Link to="/">Palaa alkuun</Link>
