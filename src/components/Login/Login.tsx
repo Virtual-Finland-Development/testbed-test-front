@@ -3,12 +3,25 @@ import Container from 'react-bootstrap/Container';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
+import styled from 'styled-components';
+import sinunaImage from '../../sinuna-login-fi.png';
 
 // api
 import api from '../../api';
 
 // constants
 import { appContextUrlEncoded } from '../../constants';
+
+const StyledLoginButton = styled(Button).attrs({
+  variant: 'link',
+  className: 'p-0',
+})`
+  img {
+    object-fit: cover;
+    width: 200px;
+    height: auto;
+  }
+`;
 
 function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,20 +44,24 @@ function Login() {
           <Card.Header className="d-flex justify-content-center">
             <Card.Title>Testbed test application</Card.Title>
           </Card.Header>
-          <Card.Body className="d-flex justify-content-center py-5">
-            <Button onClick={handleLoginClick} disabled={isLoading}>
-              {isLoading && (
+          <Card.Body className="d-flex flex-column justify-content-center align-items-center py-5 position-relative">
+            <StyledLoginButton onClick={handleLoginClick} disabled={isLoading}>
+              <img src={sinunaImage} alt="sinuna login button" />
+            </StyledLoginButton>
+
+            {isLoading && (
+              <div style={{ position: 'absolute', bottom: 12 }}>
                 <Spinner
                   as="span"
                   animation="border"
                   size="sm"
                   role="status"
                   aria-hidden="true"
-                  className="me-3"
+                  className="mt-4"
+                  variant="primary"
                 />
-              )}
-              <span>{isLoading ? 'Ladataan...' : 'Kirjaudu'}</span>
-            </Button>
+              </div>
+            )}
           </Card.Body>
         </Card>
       </div>
