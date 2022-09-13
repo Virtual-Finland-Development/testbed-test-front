@@ -86,7 +86,7 @@ describe('Test app authentication based rendering', () => {
     expect(logoutButton).toHaveTextContent(/kirjaudutaan ulos.../i);
   });
 
-  test('User should be logged out, when logout redirect occured, api gateway (Sinuna session logout)', async () => {
+  test.skip('User should be logged out, when logout redirect occured, api gateway (Sinuna session logout)', async () => {
     // user is redirected to auth route with log out query param
     customRender2(<App />, {
       initialEntries: ['/auth?logout=success'],
