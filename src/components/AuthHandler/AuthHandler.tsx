@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import Alert from 'react-bootstrap/Alert';
 
 // context
@@ -20,11 +20,11 @@ export default function AuthHandler() {
   const [error, setError] = useState<any>(null);
   const navigate = useNavigate();
 
-  // parse url params
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-  const loginCodeParam = urlParams.get('loginCode')!;
-  const logOutParam = urlParams.get('logout');
+  // parse query params
+  const { search } = useLocation();
+  const queryParams = useMemo(() => new URLSearchParams(search), [search]);
+  const loginCodeParam = queryParams.get('loginCode')!;
+  const logOutParam = queryParams.get('logout');
 
   /**
    * Handle authentication. Navigate to root.

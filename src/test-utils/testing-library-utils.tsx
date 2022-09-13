@@ -1,22 +1,63 @@
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { AppProvider } from '../context/AppContext';
 
-const Wrapper = ({ children }: { children: ReactElement }) => (
+/**
+ * Custom render function 1
+ * Uses BrowserRouter + AppProvider as a wrapper
+ */
+const WrapperWithBrowserRouter = ({ children }: { children: ReactElement }) => (
   <BrowserRouter>
     <AppProvider>{children}</AppProvider>
   </BrowserRouter>
 );
 
-// set AppProvider as wrapper for render
-const renderWithContext = (
+const renderWithBrowserRouterAndContext = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: Wrapper, ...options });
+) => render(ui, { wrapper: WrapperWithBrowserRouter, ...options });
+
+/**
+ * Custom render function 2
+ * Uses MemoryRouter + AppProvider as a wrapper
+ * Initial routes can be passed for MemoryRouter
+ */
+interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+  initialEntries?: string[];
+}
+
+const WrapperWithMemoryRouter = ({
+  children,
+  initialEntries = [],
+}: {
+  children: ReactElement;
+  initialEntries?: string[];
+}) => (
+  <MemoryRouter initialEntries={initialEntries}>
+    <AppProvider>{children}</AppProvider>
+  </MemoryRouter>
+);
+
+const renderWithMemoryRouterAndContext = (
+  ui: ReactElement,
+  options: CustomRenderOptions
+) =>
+  render(ui, {
+    wrapper: props => (
+      <WrapperWithMemoryRouter
+        {...props}
+        initialEntries={options.initialEntries}
+      />
+    ),
+    ...options,
+  });
 
 // re-export everything
 export * from '@testing-library/react';
 
 // override render method
-export { renderWithContext as render };
+export {
+  renderWithBrowserRouterAndContext as customRender1,
+  renderWithMemoryRouterAndContext as customRender2,
+};
