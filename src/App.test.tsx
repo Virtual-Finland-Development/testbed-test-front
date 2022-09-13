@@ -10,11 +10,13 @@ import api from '../src/api';
 import { appContextUrlEncoded } from '../src/constants';
 
 describe('Test app authentication based rendering', () => {
-  test.skip('Login button should be shown before authentication. Redirect to Sinuna authentication should happen when login button clicked.', async () => {
+  test('Login button should be shown before authentication. Redirect to Sinuna authentication should happen when login button clicked.', async () => {
     customRender1(<App />);
 
     // login component should be shown, login button should be in the document
-    const loginButton = screen.getByRole('button', { name: /kirjaudu/i });
+    const loginButton = screen.getByRole('button', {
+      name: /sinuna-login-button/i,
+    });
     expect(loginButton).toBeInTheDocument();
 
     // mock location.assign
@@ -28,11 +30,17 @@ describe('Test app authentication based rendering', () => {
       `${api.AUTH_GW_ENDPOINT}/auth/openid/login-request?appContext=${appContextUrlEncoded}`
     );
 
-    // login button should change text to "Ladataan..." when redirect happens
-    expect(loginButton).toHaveTextContent(/ladataan.../i);
+    // login button should be disabled when login action is clicked
+    expect(loginButton).toBeDisabled();
+
+    // loading spinner should appear when login action occurs
+    const loadingSpinner = screen.getByRole('status', {
+      name: /login-loading-spinner/i,
+    });
+    expect(loadingSpinner).toBeInTheDocument();
   });
 
-  test.skip('User should be authenticated when directed to auth route with loginCode. After authentication, user sees data selection input and selects open data.', async () => {
+  test('User should be authenticated when directed to auth route with loginCode. After authentication, user sees data selection input and selects open data.', async () => {
     // user is redirected to auth route with loginCode query param, user should be logged in
     customRender2(<App />, {
       initialEntries: ['/auth?loginCode=123'],
@@ -59,7 +67,7 @@ describe('Test app authentication based rendering', () => {
     expect(mainHeader).toBeInTheDocument();
   });
 
-  test.skip('User clicks log out button, log out redirect should occur', async () => {
+  test('User clicks log out button, log out redirect should occur', async () => {
     // user is redirected to auth route with loginCode query param, user should be logged in
     customRender2(<App />, {
       initialEntries: ['/auth?loginCode=123'],
@@ -86,7 +94,7 @@ describe('Test app authentication based rendering', () => {
     expect(logoutButton).toHaveTextContent(/kirjaudutaan ulos.../i);
   });
 
-  test.skip('User should be logged out, when logout redirect occured, api gateway (Sinuna session logout)', async () => {
+  test('User should be logged out, when logout redirect occured, api gateway (Sinuna session logout)', async () => {
     // user is redirected to auth route with log out query param
     customRender2(<App />, {
       initialEntries: ['/auth?logout=success'],
@@ -94,7 +102,7 @@ describe('Test app authentication based rendering', () => {
 
     // user should be logged out, login button should appear in the document
     const loginButton = await screen.findByRole('button', {
-      name: /kirjaudu/i,
+      name: /sinuna-login-button/i,
     });
     expect(loginButton).toBeInTheDocument();
   });

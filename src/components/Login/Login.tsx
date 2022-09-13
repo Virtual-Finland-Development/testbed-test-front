@@ -23,6 +23,17 @@ const StyledLoginButton = styled(Button).attrs({
   }
 `;
 
+const StyledLoadingSpinner = styled(Spinner).attrs({
+  animation: 'border',
+  size: 'sm',
+  role: 'status',
+  className: 'position-absolute mt-4',
+  variant: 'primary',
+  'aria-label': 'login-loading-spinner',
+})`
+  bottom: 16px;
+`;
+
 function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,23 +56,15 @@ function Login() {
             <Card.Title>Testbed test application</Card.Title>
           </Card.Header>
           <Card.Body className="d-flex flex-column justify-content-center align-items-center py-5 position-relative">
-            <StyledLoginButton onClick={handleLoginClick} disabled={isLoading}>
+            <StyledLoginButton
+              onClick={handleLoginClick}
+              disabled={isLoading}
+              aria-label="sinuna-login-button"
+            >
               <img src={sinunaImage} alt="sinuna login button" />
             </StyledLoginButton>
 
-            {isLoading && (
-              <div style={{ position: 'absolute', bottom: 12 }}>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                  className="mt-4"
-                  variant="primary"
-                />
-              </div>
-            )}
+            {isLoading && <StyledLoadingSpinner />}
           </Card.Body>
         </Card>
       </div>
