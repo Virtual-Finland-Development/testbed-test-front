@@ -12,7 +12,10 @@ import Loading from '../Loading/Loading';
 import api from '../../api';
 
 // constants
-import { appContextUrlEncoded } from '../../constants';
+import {
+  appContextUrlEncoded,
+  LOCAL_STORAGE_ROUTE_NAME,
+} from '../../constants';
 
 export default function AuthHandler() {
   const { logIn, logOut } = useAppContext();
@@ -27,7 +30,7 @@ export default function AuthHandler() {
   const logOutParam = queryParams.get('logout');
 
   /**
-   * Handle authentication. Navigate to root.
+   * Handle authentication. Navigate to stored route / root.
    */
   const handleAuthentication = useCallback(async () => {
     try {
@@ -46,7 +49,7 @@ export default function AuthHandler() {
       const { email: userEmail } = userInfoResponse.data;
 
       logIn(token, userEmail);
-      navigate('/');
+      navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
     } catch (error) {
       setError(error);
     } finally {

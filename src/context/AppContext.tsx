@@ -6,7 +6,7 @@ import {
   useContext,
 } from 'react';
 import { AxiosError } from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // constants
 import { appContextUrlEncoded } from '../constants';
@@ -18,15 +18,18 @@ import api from '../api';
 import {
   LOCAL_STORAGE_AUTH_TOKEN,
   LOCAL_STORAGE_USER_EMAIL,
+  LOCAL_STORAGE_ROUTE_NAME,
 } from '../constants';
 
 interface AppState {
   authenticated: boolean;
+  loading: boolean;
 }
 
 enum ActionTypes {
   LOG_IN = 'LOG_IN',
   LOG_OUT = 'LOG_OUT',
+  SET_LOADING = 'SET_LOADING',
 }
 
 interface LogInAction {
@@ -37,10 +40,16 @@ interface LogOutAction {
   type: ActionTypes.LOG_OUT;
 }
 
-type Action = LogInAction | LogOutAction;
+interface LoadingAction {
+  type: ActionTypes.SET_LOADING;
+  loading: boolean;
+}
+
+type Action = LogInAction | LogOutAction | LoadingAction;
 
 interface AppContextInterface {
   authenticated: boolean;
+  loading: boolean;
   logIn: (token: string, userEmail: string) => void;
   logOut: () => void;
 }
@@ -54,6 +63,7 @@ interface AppProviderProps {
  */
 const initialState: AppState = {
   authenticated: false,
+  loading: false,
 };
 
 function reducer(state: AppState, action: Action) {
@@ -68,6 +78,12 @@ function reducer(state: AppState, action: Action) {
         ...state,
         authenticated: false,
       };
+    case ActionTypes.SET_LOADING: {
+      return {
+        ...state,
+        loading: action.loading,
+      };
+    }
     default:
       return state;
   }
@@ -81,11 +97,12 @@ const AppConsumer = AppContext.Consumer;
 
 function AppProvider({ children }: AppProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { authenticated } = state;
+  const { authenticated, loading } = state;
   const navigate = useNavigate();
+  const location = useLocation();
 
   /**
-   * Handle login. Set user as authenticated. Store auth token, user email.
+   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage. Navigate to correct route based on selection.
    */
   const logIn = useCallback((token: string, userEmail: string) => {
     dispatch({ type: ActionTypes.LOG_IN });
@@ -103,8 +120,8 @@ function AppProvider({ children }: AppProviderProps) {
   }, []);
 
   /**
-   * Check user info status (Sinuna session state).
-   * If request throws 401 error, user needs to log in.
+   * Calls api GW endpoint to check if user Sinuna token is expired or not.
+   * If token is still valid, response will hold user email, otherwise it throws 401.
    */
   const checkUserInfoStatus = useCallback(
     async (token: string) => {
@@ -114,33 +131,39 @@ function AppProvider({ children }: AppProviderProps) {
           appContext: appContextUrlEncoded,
         });
         const { email } = userInfoResponse.data;
-        localStorage.setItem(LOCAL_STORAGE_USER_EMAIL, email);
+
+        logIn(token, email);
+        dispatch({ type: ActionTypes.SET_LOADING, loading: false });
       } catch (error) {
+        // if getUserInfo throws 401 error, it means sinuna session expired and user needs to be logged in again
         if (error instanceof AxiosError) {
           if (error.response?.status === 401) {
-            alert('Istuntosi on vanhentunut, ole hyvä ja kirjaudu uudelleen.');
-            navigate('/');
+            // log user out, set previous route name to local storage and direct user to login request
+            localStorage.setItem(LOCAL_STORAGE_ROUTE_NAME, location.pathname);
             logOut();
+            window.location.assign(
+              `${api.AUTH_GW_ENDPOINT}/auth/openid/login-request?appContext=${appContextUrlEncoded}`
+            );
+          } else {
+            logOut();
+            navigate('/');
           }
         }
       }
     },
-    [logOut, navigate]
+    [logIn, location.pathname, logOut, navigate]
   );
 
   /**
-   * If auth token is found in local storage, log user in automatically.
-   * Check user info status, if userEmail is not found in local storage.
+   * If auth token is found in local storage, check if user session is expired (Sinuna).
    */
   useEffect(() => {
     const authToken = localStorage.getItem(LOCAL_STORAGE_AUTH_TOKEN);
-    const userEmail = localStorage.getItem(LOCAL_STORAGE_USER_EMAIL);
+    // const userEmail = localStorage.getItem(LOCAL_STORAGE_USER_EMAIL);
 
     if (authToken) {
-      dispatch({ type: ActionTypes.LOG_IN });
-    }
-
-    if (authToken && !userEmail) {
+      // dispatch({ type: ActionTypes.LOG_IN });
+      dispatch({ type: ActionTypes.SET_LOADING, loading: true });
       checkUserInfoStatus(authToken);
     }
   }, [checkUserInfoStatus]);
@@ -149,6 +172,7 @@ function AppProvider({ children }: AppProviderProps) {
     <AppContext.Provider
       value={{
         authenticated,
+        loading,
         logIn,
         logOut,
       }}

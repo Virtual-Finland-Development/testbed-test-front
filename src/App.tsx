@@ -6,6 +6,7 @@ import './App.css';
 import { AppProvider, AppConsumer } from './context/AppContext';
 
 // components
+import Loading from './components/Loading/Loading';
 import LoginRoutes from './components/LoginRoutes/LoginRoutes';
 import AppRoutes from './components/AppRoutes/AppRoutes';
 import LogOut from './components/LogOut/LogOut';
@@ -20,7 +21,15 @@ function App() {
               return null;
             }
 
-            const { authenticated } = provider;
+            const { authenticated, loading } = provider;
+
+            if (loading) {
+              return (
+                <div className="h-100 d-flex align-items-center justify-content-center">
+                  <Loading />
+                </div>
+              );
+            }
 
             return (
               <React.Fragment>
