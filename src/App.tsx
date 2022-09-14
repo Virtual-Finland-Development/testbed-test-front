@@ -23,21 +23,19 @@ function App() {
 
             const { authenticated, loading } = provider;
 
-            if (loading) {
-              return (
-                <div className="h-100 d-flex align-items-center justify-content-center">
-                  <Loading />
-                </div>
-              );
-            }
-
             return (
               <React.Fragment>
                 <main
                   className="d-flex flex-column flex-fill w-100 justify-content-center align-items-center p-4"
                   id="main"
                 >
-                  {!authenticated ? <LoginRoutes /> : <AppRoutes />}
+                  {loading ? (
+                    <Loading />
+                  ) : (
+                    <React.Fragment>
+                      {!authenticated ? <LoginRoutes /> : <AppRoutes />}
+                    </React.Fragment>
+                  )}
                 </main>
                 <footer className="px-4 py-5 text-muted">
                   <Container>
@@ -45,7 +43,7 @@ function App() {
                       <div className="flex-fill d-flex align-items-center justify-content-md-center">
                         Testbed test application
                       </div>
-                      {authenticated && (
+                      {!loading && authenticated && (
                         <div className="position-absolute end-0">
                           <LogOut />
                         </div>
