@@ -111,14 +111,8 @@ export class CloudFront extends pulumi.ComponentResource {
    * Cache bust application code on every pulumi update
    */
   invalidateCache() {
-    const invalidationCommand = new local.Command(
-      'invalidate',
-      {
-        create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${this.cloudFrontDistribution.id} --paths "/*"`,
-      },
-      {
-        replaceOnChanges: ['environment'],
-      }
-    );
+    const invalidationCommand = new local.Command('invalidate', {
+      create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${this.cloudFrontDistribution.id} --paths "/*"`,
+    });
   }
 }
