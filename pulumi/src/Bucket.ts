@@ -43,7 +43,6 @@ function uploadToS3(
       uploadToS3(buildDir, bucket, `${subDir}/${item}`);
     } else {
       const file = subDir.length > 0 ? `${subDir.slice(1)}/${item}` : item;
-      console.log(file);
       const object = new aws.s3.BucketObject(file, {
         bucket: bucket,
         source: new pulumi.asset.FileAsset(filePath),

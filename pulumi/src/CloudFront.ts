@@ -107,6 +107,9 @@ export class CloudFront extends pulumi.ComponentResource {
     );
   }
 
+  /**
+   * Cache bust application code on every pulumi update
+   */
   invalidateCache() {
     const invalidationCommand = new local.Command(
       'invalidate',
