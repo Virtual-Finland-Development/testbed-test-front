@@ -44,26 +44,30 @@ function uploadToS3(
     if (fs.statSync(filePath).isDirectory()) {
       uploadToS3(buildDir, bucket, `${subDir}/${item}`, cloudFrontDistribution);
     } else {
-      const fileName = subDir.length > 0 ? `${subDir.slice(1)}/${item}` : item;
-      const object = new aws.s3.BucketObject(fileName, {
+      const file = subDir.length > 0 ? `${subDir.slice(1)}/${item}` : item;
+      console.log(file);
+      const object = new aws.s3.BucketObject(file, {
         bucket: bucket,
         source: new pulumi.asset.FileAsset(filePath),
         contentType: mime.getType(filePath) || undefined,
         // acl: 'public-read',
       });
-      // cloudfront cache invalidation command
-      const invalidationCommand = new local.Command(
-        'invalidate',
-        {
-          create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${cloudFrontDistribution.id} --paths ${fileName}`,
-          environment: {
-            ETAG: object.etag,
+      if (file === 'index.html') {
+        // cloudfront cache invalidation command
+        console.log('YES INDEX FILE');
+        const invalidationCommand = new local.Command(
+          'invalidate',
+          {
+            create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${cloudFrontDistribution.id} --paths index.html`,
+            environment: {
+              ETAG: object.etag,
+            },
           },
-        },
-        {
-          replaceOnChanges: ['environment'],
-        }
-      );
+          {
+            replaceOnChanges: ['environment'],
+          }
+        );
+      }
     }
   }
 }
