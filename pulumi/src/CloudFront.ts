@@ -1,5 +1,6 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
+import { local } from '@pulumi/command';
 import { ResourceOptions } from '@pulumi/pulumi';
 
 import { BUCKET_NAME } from './constants';
@@ -102,6 +103,18 @@ export class CloudFront extends pulumi.ComponentResource {
       'testbed-test-front-origin-access-identity',
       {
         comment: `Access Identity for ${BUCKET_NAME}`,
+      }
+    );
+  }
+
+  invalidateCache() {
+    const invalidationCommand = new local.Command(
+      'invalidate',
+      {
+        create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${this.cloudFrontDistribution.id} --paths "/*"`,
+      },
+      {
+        replaceOnChanges: ['environment'],
       }
     );
   }

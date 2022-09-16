@@ -1,7 +1,6 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 import { ResourceOptions } from '@pulumi/pulumi';
-import { local } from '@pulumi/command';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mime from 'mime';
@@ -35,14 +34,13 @@ function publicReadPolicyForBucket(
 function uploadToS3(
   buildDir: string,
   bucket: aws.s3.Bucket,
-  subDir: string = '',
-  cloudFrontDistribution: aws.cloudfront.Distribution
+  subDir: string = ''
 ) {
   for (let item of fs.readdirSync(`${buildDir}${subDir}`)) {
     const filePath = path.join(buildDir, subDir, item);
 
     if (fs.statSync(filePath).isDirectory()) {
-      uploadToS3(buildDir, bucket, `${subDir}/${item}`, cloudFrontDistribution);
+      uploadToS3(buildDir, bucket, `${subDir}/${item}`);
     } else {
       const file = subDir.length > 0 ? `${subDir.slice(1)}/${item}` : item;
       console.log(file);
@@ -52,22 +50,6 @@ function uploadToS3(
         contentType: mime.getType(filePath) || undefined,
         // acl: 'public-read',
       });
-      if (file === 'index.html') {
-        // cloudfront cache invalidation command
-        console.log('YES INDEX FILE');
-        const invalidationCommand = new local.Command(
-          'invalidate',
-          {
-            create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${cloudFrontDistribution.id} --paths index.html`,
-            environment: {
-              ETAG: object.etag,
-            },
-          },
-          {
-            replaceOnChanges: ['environment'],
-          }
-        );
-      }
     }
   }
 }
@@ -114,9 +96,9 @@ export class Bucket extends pulumi.ComponentResource {
     );
 
     // Create bucket objects of all built asssets and upload to bucket
-    // process.chdir('../');
-    // const buildDir = `${process.cwd()}/build`;
-    // uploadToS3(buildDir, s3Bucket);
+    process.chdir('../');
+    const buildDir = `${process.cwd()}/build`;
+    uploadToS3(buildDir, s3Bucket);
 
     this.bucket = s3Bucket;
     this.bucketPolicy = bucketPolicy;
@@ -125,12 +107,5 @@ export class Bucket extends pulumi.ComponentResource {
       bucket: this.bucket,
       bucketPolicy: this.bucketPolicy,
     });
-  }
-
-  manageS3Assets(cloudFrontDistriBution: aws.cloudfront.Distribution) {
-    process.chdir('../');
-    const buildDir = `${process.cwd()}/build`;
-    // const cloudFrontDistId = pulumi.interpolate`${cloudFrontDistriBution.id}`;
-    uploadToS3(buildDir, this.bucket, '', cloudFrontDistriBution);
   }
 }
