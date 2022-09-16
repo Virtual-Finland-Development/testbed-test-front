@@ -1,6 +1,7 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as aws from '@pulumi/aws';
 import { ResourceOptions } from '@pulumi/pulumi';
+import { local } from '@pulumi/command';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mime from 'mime';
@@ -34,21 +35,33 @@ function publicReadPolicyForBucket(
 function uploadToS3(
   buildDir: string,
   bucket: aws.s3.Bucket,
-  subDir: string = ''
+  subDir: string = '',
+  cloudFrontDistribution: aws.cloudfront.Distribution
 ) {
   for (let item of fs.readdirSync(`${buildDir}${subDir}`)) {
     const filePath = path.join(buildDir, subDir, item);
 
     if (fs.statSync(filePath).isDirectory()) {
-      uploadToS3(buildDir, bucket, `${subDir}/${item}`);
+      uploadToS3(buildDir, bucket, `${subDir}/${item}`, cloudFrontDistribution);
     } else {
-      const object = new aws.s3.BucketObject(
-        subDir.length > 0 ? `${subDir.slice(1)}/${item}` : item,
+      const fileName = subDir.length > 0 ? `${subDir.slice(1)}/${item}` : item;
+      const object = new aws.s3.BucketObject(fileName, {
+        bucket: bucket,
+        source: new pulumi.asset.FileAsset(filePath),
+        contentType: mime.getType(filePath) || undefined,
+        // acl: 'public-read',
+      });
+      // cloudfront cache invalidation command
+      const invalidationCommand = new local.Command(
+        'invalidate',
         {
-          bucket: bucket,
-          source: new pulumi.asset.FileAsset(filePath),
-          contentType: mime.getType(filePath) || undefined,
-          // acl: 'public-read',
+          create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${cloudFrontDistribution.id} --paths ${fileName}`,
+          environment: {
+            ETAG: object.etag,
+          },
+        },
+        {
+          replaceOnChanges: ['environment'],
         }
       );
     }
@@ -97,9 +110,9 @@ export class Bucket extends pulumi.ComponentResource {
     );
 
     // Create bucket objects of all built asssets and upload to bucket
-    process.chdir('../');
-    const buildDir = `${process.cwd()}/build`;
-    uploadToS3(buildDir, s3Bucket);
+    // process.chdir('../');
+    // const buildDir = `${process.cwd()}/build`;
+    // uploadToS3(buildDir, s3Bucket);
 
     this.bucket = s3Bucket;
     this.bucketPolicy = bucketPolicy;
@@ -108,5 +121,12 @@ export class Bucket extends pulumi.ComponentResource {
       bucket: this.bucket,
       bucketPolicy: this.bucketPolicy,
     });
+  }
+
+  manageS3Assets(cloudFrontDistriBution: aws.cloudfront.Distribution) {
+    process.chdir('../');
+    const buildDir = `${process.cwd()}/build`;
+    // const cloudFrontDistId = pulumi.interpolate`${cloudFrontDistriBution.id}`;
+    uploadToS3(buildDir, this.bucket, '', cloudFrontDistriBution);
   }
 }

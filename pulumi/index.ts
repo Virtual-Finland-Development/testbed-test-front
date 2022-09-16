@@ -18,5 +18,8 @@ const cloudFrontSetup = new CloudFront(
   originAccessIdentity
 );
 
+// Manage app assets after cloud front distribution is set
+bucketSetup.manageS3Assets(cloudFrontSetup.cloudFrontDistribution);
+
 export const bucketName = bucketSetup.bucket.id;
 export const bucketEndpoint = pulumi.interpolate`http://${bucketSetup.bucket.websiteEndpoint}`;
