@@ -90,7 +90,6 @@ export class Bucket extends pulumi.ComponentResource {
           .apply(([bucketName, originAccessArn]) =>
             publicReadPolicyForBucket(bucketName, originAccessArn)
           ),
-        // policy: siteBucket.bucket.apply(publicReadPolicyForBucket),
       },
       {
         parent: this,
@@ -98,7 +97,8 @@ export class Bucket extends pulumi.ComponentResource {
     );
 
     // Create bucket objects of all built asssets and upload to bucket
-    const buildDir = `${process.cwd()}/../../build`;
+    process.chdir('../');
+    const buildDir = `${process.cwd()}/build`;
     uploadToS3(buildDir, s3Bucket);
 
     this.bucket = s3Bucket;
