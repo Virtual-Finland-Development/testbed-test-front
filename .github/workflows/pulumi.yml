@@ -33,7 +33,7 @@ jobs:
       - name: Run Pulumi
         uses: pulumi/actions@v3
         with:
-          working-directory: ./pulumi
+          work-dir: ./pulumi
           command: up
           stack-name: dev
           # cloud-url: s3://my-bucket-name
