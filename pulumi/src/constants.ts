@@ -1,1 +1,1 @@
-export const BUCKET_NAME = 'virtualfinland:testbed-test-front-bucket';
+export const BUCKET_NAME = 'testbed-test-front-bucket-pulumi';
