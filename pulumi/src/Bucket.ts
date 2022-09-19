@@ -51,9 +51,7 @@ function uploadToS3(
         cacheControl:
           subDir.length > 0
             ? 'max-age=31536000'
-            : file === 'index.html'
-            ? 'max-age=0'
-            : 'no-store, no-cache',
+            : 'no-store, no-cache, max-age=0',
         // acl: 'public-read',
       });
     }
