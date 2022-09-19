@@ -1,39 +1,40 @@
-name: Production Build
+name: Build and test app, set up infa and deploy using Pulumi
 on:
-  pull_request:
   push:
     branches:
       - main
 jobs:
-  build:
+  up:
+    name: Update
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [16.x]
-
     steps:
-      - uses: actions/checkout@v1
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install
-        run: |
-          npm install
-      - name: Production Build
-        run: |
-          npm run build
-      - name: Unit Tests
-        run: |
-          npm test
-      - name: Deploy to S3
-        uses: jakejarvis/s3-sync-action@master
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          args: --delete
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-region: 'eu-north-1'
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Install
+        run: npm install
+      - name: Production build
+        run: npm run build
+      - name: Run app tests
+        run: npm test
+      - name: Run pulumi tests
+        run: npm run test-pulumi
+      - name: Run Pulumi
+        uses: pulumi/actions@v3
+        with:
+          work-dir: ./pulumi
+          command: up
+          stack-name: dev
         env:
-          AWS_S3_BUCKET: ${{ secrets.AWS_PRODUCTION_BUCKET_NAME }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          SOURCE_DIR: 'build'
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
