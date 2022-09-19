@@ -49,7 +49,11 @@ function uploadToS3(
         contentType: mime.getType(filePath) || undefined,
         // https://create-react-app.dev/docs/production-build/#static-file-caching
         cacheControl:
-          subDir.length > 0 ? 'max-age=31536000' : 'no-store, no-cache', //
+          subDir.length > 0
+            ? 'max-age=31536000'
+            : file === 'index.html'
+            ? 'max-age=0'
+            : 'no-store, no-cache',
         // acl: 'public-read',
       });
     }
