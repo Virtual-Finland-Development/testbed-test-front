@@ -18,7 +18,7 @@ const cloudFrontSetup = new CloudFront(
   originAccessIdentity
 );
 // Invalidate cloud front cache
-cloudFrontSetup.invalidateCache();
+// cloudFrontSetup.invalidateCache();
 
 export const bucketName = bucketSetup.bucket.id;
 export const bucketEndpoint = pulumi.interpolate`http://${bucketSetup.bucket.websiteEndpoint}`;

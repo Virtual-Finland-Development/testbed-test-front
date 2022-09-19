@@ -53,7 +53,7 @@ function Login() {
       <div className="d-flex justify-content-center">
         <Card className="shadow" style={{ maxWidth: 400, minWidth: 330 }}>
           <Card.Header className="d-flex justify-content-center">
-            <Card.Title>Testbed test application</Card.Title>
+            <Card.Title>Testbed test application 123</Card.Title>
           </Card.Header>
           <Card.Body className="d-flex flex-column justify-content-center align-items-center py-5 position-relative">
             <StyledLoginButton

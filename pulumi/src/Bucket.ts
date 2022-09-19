@@ -47,6 +47,9 @@ function uploadToS3(
         bucket: bucket,
         source: new pulumi.asset.FileAsset(filePath),
         contentType: mime.getType(filePath) || undefined,
+        // https://create-react-app.dev/docs/production-build/#static-file-caching
+        cacheControl:
+          subDir.length > 0 ? 'max-age=31536000' : 'no-store, no-cache', //
         // acl: 'public-read',
       });
     }
