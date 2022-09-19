@@ -26,8 +26,10 @@ jobs:
         run: npm install
       - name: Production build
         run: npm run build
-      - name: Run tests
+      - name: Run app tests
         run: npm test
+      - name: Run pulumi tests
+        run: npm run test-pulumi
       - name: Run Pulumi
         uses: pulumi/actions@v3
         with:

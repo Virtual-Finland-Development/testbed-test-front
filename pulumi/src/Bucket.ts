@@ -99,11 +99,6 @@ export class Bucket extends pulumi.ComponentResource {
       }
     );
 
-    // Create bucket objects of all built asssets and upload to bucket
-    process.chdir('../');
-    const buildDir = `${process.cwd()}/build`;
-    uploadToS3(buildDir, s3Bucket);
-
     this.bucket = s3Bucket;
     this.bucketPolicy = bucketPolicy;
 
@@ -111,5 +106,12 @@ export class Bucket extends pulumi.ComponentResource {
       bucket: this.bucket,
       bucketPolicy: this.bucketPolicy,
     });
+  }
+
+  // Create bucket objects of all built asssets and upload to bucket
+  uploadAssets() {
+    process.chdir('../');
+    const buildDir = `${process.cwd()}/build`;
+    uploadToS3(buildDir, this.bucket);
   }
 }

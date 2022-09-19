@@ -10,6 +10,7 @@ const originAccessIdentity = CloudFront.createOriginAccessIdentity();
 
 // S3 bucket configuration
 const bucketSetup = new Bucket('front-bucket-setup', originAccessIdentity);
+bucketSetup.uploadAssets();
 
 // Cloud front configuration
 const cloudFrontSetup = new CloudFront(

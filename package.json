@@ -35,13 +35,15 @@
     "@pulumi/pulumi": "^3.0.0",
     "@types/mime": "^3.0.1",
     "@types/node": "^14",
-    "mime": "^3.0.0"
+    "mime": "^3.0.0",
+    "ts-jest": "^29.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test-pulumi": "./node_modules/.bin/jest --config pulumi/jest.config.ts pulumi/index.test.ts"
   },
   "browserslist": {
     "production": [
