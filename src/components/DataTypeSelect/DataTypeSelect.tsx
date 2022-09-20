@@ -28,9 +28,7 @@ function Login() {
               <option value={RouteNames.OPEN_DATA}>
                 Kuntien väkiluvut alueittain (2021)
               </option>
-              <option value={RouteNames.TMT} disabled>
-                Työmarkkinatori (TBD)
-              </option>
+              <option value={RouteNames.TMT}>Työmarkkinatori</option>
             </Form.Select>
             <Button
               className="mt-4 align-self-center"

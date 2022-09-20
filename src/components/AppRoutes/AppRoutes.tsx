@@ -10,7 +10,7 @@ import PageNotFound from '../PageNotFound/PageNotFound';
 import Loading from '../Loading/Loading';
 
 const LazyOpenData = lazy(() => import('../OpenData/OpenData'));
-// const LazyTmt = lazy(() => import('../Tmt/Tmt'));
+const LazyTmt = lazy(() => import('../Tmt/Tmt'));
 
 export default function AppRoutes() {
   return (
@@ -24,14 +24,14 @@ export default function AppRoutes() {
           </Suspense>
         }
       />
-      {/* <Route
+      <Route
         path={RouteNames.TMT}
         element={
           <Suspense fallback={<Loading />}>
             <LazyTmt />
           </Suspense>
         }
-      /> */}
+      />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

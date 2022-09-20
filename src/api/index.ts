@@ -22,6 +22,8 @@ const OPEN_DATA_BASE_URL =
     : 'http://localhost:3001';
 const OPEN_DATA_URL = `${OPEN_DATA_BASE_URL}/${OPEN_DATA_ENDPOINT_PATH}`;
 
+const TMT_DATA_URL = 'http://127.0.0.1:4010/api/v1/tyopaikat?sivu=0&maara=100';
+
 // Create axios instance for api service
 const axiosInstance = axios.create();
 
@@ -59,7 +61,7 @@ async function getUserInfo(payload: { token: string; appContext: string }) {
 }
 
 /**
- * DATA
+ * Open data
  */
 async function getKeyFigures() {
   return axiosInstance.get(`${FIGURES_URL}`);
@@ -69,13 +71,25 @@ async function getData(payload: { city: string; year: string }) {
   return axiosInstance.post(`${OPEN_DATA_URL}`, payload);
 }
 
+/**
+ * TMT data
+ */
+async function getTmtData(payload: { keywords: string; region: string }) {
+  return axiosInstance.get(TMT_DATA_URL);
+}
+
 const api = {
+  // exported urls
   AUTH_GW_ENDPOINT,
   OPEN_DATA_URL,
+  // auth
   getAuthToken,
   getUserInfo,
+  // open data
   getKeyFigures,
   getData,
+  // tmt
+  getTmtData,
 };
 
 export default api;
