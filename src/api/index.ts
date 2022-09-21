@@ -2,7 +2,7 @@ import axios from 'axios';
 import { LOCAL_STORAGE_AUTH_TOKEN } from '../constants';
 
 const AUTH_GW_ENDPOINT =
-  'https://c7ig58qwk1.execute-api.eu-north-1.amazonaws.com';
+  'https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com';
 
 const FIGURES_URL =
   'https://statfin.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px';
