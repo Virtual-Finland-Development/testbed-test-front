@@ -2,7 +2,7 @@ import axios from 'axios';
 import { LOCAL_STORAGE_AUTH_TOKEN } from '../constants';
 
 const AUTH_GW_ENDPOINT =
-  'https://c7ig58qwk1.execute-api.eu-north-1.amazonaws.com';
+  'https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com';
 
 const FIGURES_URL =
   'https://statfin.stat.fi/PXWeb/api/v1/fi/Kuntien_avainluvut/2021/kuntien_avainluvut_2021_aikasarja.px';
@@ -22,7 +22,10 @@ const OPEN_DATA_BASE_URL =
     : 'http://localhost:3001';
 const OPEN_DATA_URL = `${OPEN_DATA_BASE_URL}/${OPEN_DATA_ENDPOINT_PATH}`;
 
-const TMT_DATA_URL = 'http://127.0.0.1:4010/api/v1/tyopaikat?sivu=0&maara=100';
+const TMT_DATA_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'http://127.0.0.1:5286/jobs'
+    : 'http://127.0.0.1:5286/jobs';
 
 // Create axios instance for api service
 const axiosInstance = axios.create();
@@ -74,8 +77,20 @@ async function getData(payload: { city: string; year: string }) {
 /**
  * TMT data
  */
-async function getTmtData(payload: { keywords: string; region: string }) {
-  return axiosInstance.get(TMT_DATA_URL);
+export interface TmtPostPayload {
+  query: string;
+  location: {
+    regions?: string[];
+    municipalities?: string[];
+    countries?: string[];
+  };
+  paging: {
+    limit: number;
+    offset: number;
+  };
+}
+async function getTmtData(payload: TmtPostPayload) {
+  return axiosInstance.post(TMT_DATA_URL, payload);
 }
 
 const api = {

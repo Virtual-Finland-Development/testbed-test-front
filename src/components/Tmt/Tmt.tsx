@@ -23,7 +23,7 @@ import Loading from '../Loading/Loading';
 import Pagination from '../Pagination/Pagination';
 
 // api
-import api from '../../api';
+import api, { TmtPostPayload } from '../../api';
 
 // selections
 import regions from './selections/regions.json';
@@ -49,15 +49,20 @@ interface PlaceSelection {
   }[];
 }
 
-interface JobAd {
-  hakeminen: {
-    hakemisenUrl: string;
-    hakuaikaPaattyy: string;
-    ilmoittajanYhteystiedot: {
-      puhelinNro: string;
-      sposti: string;
-    };
+export interface JobPostingEntry {
+  employer: string;
+  location: {
+    municipality: string;
+    postcode: string;
   };
+  basicInfo: {
+    title: string;
+    description: string;
+    workTimeType: '01' | '02';
+  };
+  publishedAt: string;
+  applicationEndDate: string;
+  applicationUrl: string;
 }
 
 function stringifySearchProps(search: string | null, props: any): string {
@@ -137,18 +142,34 @@ export default function Tmt() {
   const [pageNumber, setPageNumber] = useState<number | null>(null);
   const [pageSize, setPageSize] = useState<number | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setDataLoading(true);
+  const fetchData = useCallback(
+    async (payload: TmtPostPayload) => {
+      setDataLoading(true);
 
-    setTimeout(() => {
+      /*  setTimeout(() => {
       setData(mockData);
       setDataLoading(false);
 
       if (!dataInitialized) {
         setDataInitialized(true);
       }
-    }, 200);
-  }, [dataInitialized]);
+    }, 200); */
+      try {
+        const response = await api.getTmtData(payload);
+        console.log(response);
+        setData(response.data.results);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setDataLoading(false);
+
+        if (!dataInitialized) {
+          setDataInitialized(true);
+        }
+      }
+    },
+    [dataInitialized]
+  );
 
   const searchParamsState = useMemo(
     () => ({
@@ -195,7 +216,7 @@ export default function Tmt() {
     if (typeof search === 'string' || selectedPlaces.length) {
       const payload = {
         query: typeof search === 'string' ? search.split(' ').toString() : '',
-        locations: {
+        location: {
           regions: selectedPlaces
             .filter(p => p.type === PlaceType.REGION)
             .map(p => p.Koodi),
@@ -207,12 +228,12 @@ export default function Tmt() {
             .map(p => p.Koodi),
         },
         paging: {
-          pageNumber: pageNumber || 0,
-          pageSize: pageSize || 25,
+          limit: pageSize || 25,
+          offset: pageNumber || 0,
         },
       };
       console.log(payload);
-      fetchData();
+      fetchData(payload);
     }
   }, [fetchData, pageNumber, pageSize, search, selectedPlaces]);
 
@@ -237,9 +258,7 @@ export default function Tmt() {
     [searchInputValue]
   );
 
-  // console.log(search);
-  // console.log(regions);
-
+  console.log(data);
   return (
     <div className="w-100 h-100 d-flex">
       <Container id="tmt">
@@ -255,7 +274,7 @@ export default function Tmt() {
           />
           <Card.Header>
             <Card.Title>Työmarkkinatorin työnhaku</Card.Title>
-            <Card.Subtitle>Valitse sijainti ja työnimike</Card.Subtitle>
+            <Card.Subtitle>Käytä hakua ja valitse sijainti</Card.Subtitle>
             <Form
               className="d-flex flex-row flex-wrap mt-4"
               style={{ rowGap: '0.5rem' }}
@@ -280,7 +299,7 @@ export default function Tmt() {
                 }
               >
                 <option disabled value="placeholder">
-                  Valitse alue...
+                  Valitse sijainti...
                 </option>
                 <optgroup label="Maakunta">
                   {mapSelectOptions(PlaceType.REGION, regions, selectedPlaces)}
@@ -357,8 +376,8 @@ export default function Tmt() {
                 pointerEvents: dataLoading ? 'none' : 'initial',
               }}
             >
-              {currentItems.map((item: any) => (
-                <JobItem key={item.id} item={item} />
+              {currentItems.map((item: JobPostingEntry, index: number) => (
+                <JobItem key={index} item={item} />
               ))}
             </div>
 
