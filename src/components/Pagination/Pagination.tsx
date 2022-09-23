@@ -2,15 +2,17 @@ import ReactPaginate from 'react-paginate';
 
 interface PaginationProps {
   pageCount: number;
+  initialPage: number;
   onPageChange: (value: number) => void;
 }
 
 export default function Pagination(props: PaginationProps) {
-  const { pageCount, onPageChange } = props;
+  const { pageCount, initialPage, onPageChange } = props;
 
   return (
     <ReactPaginate
       pageCount={pageCount}
+      initialPage={initialPage}
       marginPagesDisplayed={1}
       pageRangeDisplayed={3}
       onPageChange={event => onPageChange(event.selected)}

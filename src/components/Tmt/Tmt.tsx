@@ -6,14 +6,12 @@ import React, {
   FormEvent,
 } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import queryString from 'query-string';
 import Container from 'react-bootstrap/Container';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import Alert from 'react-bootstrap/Alert';
 import { IoCloseCircle, IoClose } from 'react-icons/io5';
-
-import mockData from './mockData.json';
 
 import jobs from '../../jobs.png';
 
@@ -24,6 +22,13 @@ import Pagination from '../Pagination/Pagination';
 
 // api
 import api, { TmtPostPayload } from '../../api';
+
+// utils
+import {
+  stringifySearchProps,
+  isNumericString,
+  scrollToElement,
+} from '../../utils';
 
 // selections
 import regions from './selections/regions.json';
@@ -65,49 +70,7 @@ export interface JobPostingEntry {
   applicationUrl: string;
 }
 
-function stringifySearchProps(search: string | null, props: any): string {
-  const s = typeof search === 'string' ? search : window.location.search;
-  // Parse 'search' parameter to an object.
-  const params = queryString.parse(s, {
-    arrayFormat: 'index',
-    parseNumbers: true,
-    parseBooleans: true,
-  });
-
-  // Create output object with url params & props
-  let output = { ...params, ...props };
-
-  // Empty filters
-  output.sp = [];
-
-  // Pass filters to output as an array
-  // Item format { name:operator:value:related }
-  if (props?.sp && props.sp.length) {
-    for (const place of props.sp) {
-      output.sp.push(place.Koodi);
-    }
-  }
-
-  // Stringify output object
-  const stringified = queryString.stringify(output, {
-    arrayFormat: 'comma',
-    skipNull: true,
-    skipEmptyString: true,
-  });
-
-  return stringified;
-}
-
-const itemsPerPage = 10;
-
-function scrollToTop() {
-  const mainElement = document.getElementById('main');
-
-  if (typeof mainElement?.scrollIntoView === 'function') {
-    mainElement.scrollIntoView({ behavior: 'smooth' });
-  }
-}
-
+// Utility component to render selection options (region, municipality, country)
 const mapSelectOptions = (
   type: PlaceType,
   items: PlaceSelection[],
@@ -127,37 +90,35 @@ const mapSelectOptions = (
 );
 
 export default function Tmt() {
+  // state search selections
   const [searchInputValue, setSearchInputValue] = useState<string>('');
   const [search, setSearch] = useState<string | null>(null);
   const [selectedPlaces, setSelectedPlaces] = useState<PlaceSelection[]>([]);
-  const [data, setData] = useState<any>(null);
+
+  // state data
+  const [data, setData] = useState<null | {
+    results: JobPostingEntry[];
+    totalCount: number;
+  }>(null);
   const [dataInitialized, setDataInitialized] = useState<boolean>(false);
   const [dataLoading, setDataLoading] = useState<boolean>(false);
   const [error, setError] = useState<any>(null);
 
-  const [currentItems, setCurrentItems] = useState<any[] | null>(null);
-  const [pageCount, setPageCount] = useState<number>(0);
-  const [itemOffset, setItemOffset] = useState<number>(0);
-
+  // pagination
   const [pageNumber, setPageNumber] = useState<number | null>(null);
-  const [pageSize, setPageSize] = useState<number | null>(null);
+  const [limit, setLimit] = useState<number | null>(null);
+  const [offset, setOffset] = useState<number | null>(null);
 
+  /**
+   * Fetch TMT data, set to state.
+   */
   const fetchData = useCallback(
     async (payload: TmtPostPayload) => {
       setDataLoading(true);
 
-      /*  setTimeout(() => {
-      setData(mockData);
-      setDataLoading(false);
-
-      if (!dataInitialized) {
-        setDataInitialized(true);
-      }
-    }, 200); */
       try {
         const response = await api.getTmtData(payload);
-        console.log(response);
-        setData(response.data.results);
+        setData(response.data);
       } catch (error) {
         setError(error);
       } finally {
@@ -171,20 +132,29 @@ export default function Tmt() {
     [dataInitialized]
   );
 
+  /**
+   * 'searchParamsState', tracked to construct URL params based on user actions.
+   */
   const searchParamsState = useMemo(
     () => ({
       q: search,
-      sp: selectedPlaces,
+      sp: selectedPlaces.map(place => place.Koodi),
       p: pageNumber,
-      ps: pageSize,
+      l: limit,
     }),
-    [pageNumber, pageSize, search, selectedPlaces]
+    [limit, pageNumber, search, selectedPlaces]
   );
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchInParams = searchParams.get('q')!;
   const placesInParams = searchParams.get('sp');
+  const pageInParams = searchParams.get('p');
+  const limitInParams = searchParams.get('l');
 
+  /**
+   * Modify state on mount, if any state parameters can be parsed from URL.
+   * This is in the case of user refreshing page, to automatically fetch data with given params.
+   */
   useEffect(() => {
     if (searchInParams) {
       setSearch(searchInParams);
@@ -199,19 +169,34 @@ export default function Tmt() {
         ].filter(p => placesInParams.split(',').includes(p.Koodi))
       );
     }
+
+    // Set limit, pageNumber and offset to state on mount, only if search or selected places can be parsed from url (required for POST)
+    if (searchInParams || placesInParams) {
+      if (pageInParams && isNumericString(pageInParams)) {
+        const pageToNumber = parseInt(pageInParams) - 1; // page number handled internally starting at 0, only presented starting at 1.
+        const limit =
+          limitInParams && isNumericString(limitInParams)
+            ? parseInt(limitInParams)
+            : 25;
+        setPageNumber(pageToNumber);
+        setLimit(limit);
+        setOffset(pageToNumber * limit);
+      }
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /**
+   * Track searchParamsState, reflect user selections in URL.
+   */
   useEffect(() => {
-    const endOffset = itemOffset + itemsPerPage;
-    setCurrentItems(mockData.content.slice(itemOffset, endOffset));
-    setPageCount(Math.ceil(mockData.content.length / itemsPerPage));
-  }, [itemOffset]);
-
-  useEffect(() => {
-    const stringified: string = stringifySearchProps(null, searchParamsState);
-    setSearchParams(stringified, { replace: true });
+    const stringifiedParams: string = stringifySearchProps(searchParamsState);
+    setSearchParams(stringifiedParams, { replace: true });
   }, [searchParamsState, setSearchParams]);
 
+  /**
+   * Track search / selectedPlaces / limit / offset state, construct payload and initiate data fetch.
+   * Only if search or any selected places are defined.
+   */
   useEffect(() => {
     if (typeof search === 'string' || selectedPlaces.length) {
       const payload = {
@@ -228,37 +213,38 @@ export default function Tmt() {
             .map(p => p.Koodi),
         },
         paging: {
-          limit: pageSize || 25,
-          offset: pageNumber || 0,
+          limit: limit || 25,
+          offset: offset || 0,
         },
       };
-      console.log(payload);
       fetchData(payload);
     }
-  }, [fetchData, pageNumber, pageSize, search, selectedPlaces]);
+  }, [fetchData, limit, offset, search, selectedPlaces]);
 
-  const handlePageClick = (selected: number) => {
-    scrollToTop();
-    const newOffset = (selected * itemsPerPage) % mockData.content.length;
-    setItemOffset(newOffset);
-  };
-
+  /**
+   * Handle form submit. Set search to state from input.
+   */
   const handleSubmit = useCallback(
-    async (event: FormEvent) => {
+    (event: FormEvent) => {
       event.preventDefault();
       setSearch(searchInputValue);
-      try {
-        // const response = await api.getTmtData({ keywords: search, region });
-        // console.log(response);
-        // fetchData();
-      } catch (error) {
-        setError(error);
-      }
     },
     [searchInputValue]
   );
 
-  console.log(data);
+  /**
+   * Handle pagination page click. Scroll to top, calculate offset.
+   */
+  const handlePageClick = (selectedPage: number) => {
+    scrollToElement(document.getElementById('main')!);
+    setPageNumber(selectedPage + 1); // page number handled internally starting at 0, only presented starting at 1.
+    setOffset(selectedPage * (limit || 25));
+  };
+
+  if (error) {
+    return <Alert variant="danger">Something went wrong</Alert>;
+  }
+
   return (
     <div className="w-100 h-100 d-flex">
       <Container id="tmt">
@@ -366,7 +352,7 @@ export default function Tmt() {
           </div>
         )}
 
-        {data && currentItems && (
+        {data && (
           <React.Fragment>
             <div
               className="mt-4 d-flex flex-column"
@@ -376,7 +362,7 @@ export default function Tmt() {
                 pointerEvents: dataLoading ? 'none' : 'initial',
               }}
             >
-              {currentItems.map((item: JobPostingEntry, index: number) => (
+              {data.results.map((item: JobPostingEntry, index: number) => (
                 <JobItem key={index} item={item} />
               ))}
             </div>
@@ -390,7 +376,7 @@ export default function Tmt() {
                   className="ms-4"
                   style={{ maxWidth: 150 }}
                   onChange={({ target }) =>
-                    setPageSize(parseInt(target.value, 10))
+                    setLimit(parseInt(target.value, 10))
                   }
                 >
                   <option value="25">25</option>
@@ -399,7 +385,8 @@ export default function Tmt() {
                 </Form.Select>
               </div>
               <Pagination
-                pageCount={pageCount}
+                pageCount={Math.ceil(data.totalCount / (limit || 25))}
+                initialPage={pageNumber || 0}
                 onPageChange={handlePageClick}
               />
             </div>

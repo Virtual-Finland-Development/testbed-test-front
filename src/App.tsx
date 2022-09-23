@@ -33,7 +33,7 @@ function App() {
                     <Loading />
                   ) : (
                     <React.Fragment>
-                      {authenticated ? <LoginRoutes /> : <AppRoutes />}
+                      {!authenticated ? <LoginRoutes /> : <AppRoutes />}
                     </React.Fragment>
                   )}
                 </main>

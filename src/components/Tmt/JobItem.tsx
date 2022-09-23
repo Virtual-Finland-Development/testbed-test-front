@@ -30,78 +30,21 @@ const CardBodyLeft = styled.div.attrs({
   }
 `;
 
-export default function JobItem({ item }: { item: any /* JobPostingEntry */ }) {
-  // item host
-  const domain = item.applicationUrl?.value
-    ? new URL(item.applicationUrl.value)
+export default function JobItem({ item }: { item: JobPostingEntry }) {
+  const domain = item.applicationUrl
+    ? new URL(
+        item.applicationUrl.includes('http://') ||
+        item.applicationUrl.includes('https://')
+          ? item.applicationUrl
+          : `https://${item.applicationUrl}`
+      )
     : null;
   const host =
-    item.applicationUrl?.value && domain?.host
+    item.applicationUrl && domain?.host
       ? domain.host.replace('www.', '')
       : null;
-  /*  const domain = item.applicationUrl ? new URL(item.applicationUrl) : null;
-  const host =
-    item.applicationUrl && domain?.host ? domain.host.replace('www', '') : null; */
-
-  // if (item) return null;
 
   return (
-    <Card>
-      <Card.Header className="d-flex flex-row align-items-center">
-        <span className="fw-bold flex-fill">{item.title.fi}</span>
-        <StyledBadge>
-          {item.workTime === 'FULLTIME' ? 'Kokoaikatyö' : 'Osa-aikatyö'}
-        </StyledBadge>
-      </Card.Header>
-      <Card.Body className="d-flex flex-wrap-reverse flex-md-nowrap">
-        <CardBodyRight>
-          <span className="d-block">{item.lead.fi}</span>
-          {host && (
-            <span className="d-block mt-2">
-              <a
-                href={item.applicationUrl.value}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {host}
-              </a>
-            </span>
-          )}
-        </CardBodyRight>
-        <CardBodyLeft>
-          <span className="d-block fw-bold">
-            {item.employer.name || 'Anonyymi työnantaja'}
-          </span>
-          <span className="d-block text-capitalize additional-info">
-            <IoLocationOutline />{' '}
-            {item.location?.address?.postOffice
-              ? item.location.address.postOffice.toLowerCase()
-              : ''}
-          </span>
-          {item.applicationPeriodEndDate && (
-            <OverlayTrigger
-              placement="top"
-              overlay={
-                <Tooltip id={`tooltip-${item.title.fi}`}>
-                  Hakuaika päättyy
-                </Tooltip>
-              }
-            >
-              <span className="d-block additional-info">
-                <IoCalendarOutline />{' '}
-                {format(
-                  parseISO(item.applicationPeriodEndDate),
-                  'dd.MM.yyyy HH:mm'
-                )}
-              </span>
-            </OverlayTrigger>
-          )}
-        </CardBodyLeft>
-      </Card.Body>
-    </Card>
-  );
-
-  /* return (
     <Card>
       <Card.Header className="d-flex flex-row align-items-center">
         <span className="fw-bold flex-fill">{item.basicInfo.title}</span>
@@ -130,20 +73,18 @@ export default function JobItem({ item }: { item: any /* JobPostingEntry */ }) {
           </span>
           <span className="d-block text-capitalize additional-info">
             <IoLocationOutline />{' '}
-            {item.location.municipality
-              ? item.location.municipality.toLowerCase()
-              : ''}
+            {item.location.municipality ? item.location.municipality : ''}
           </span>
           {item.applicationEndDate && (
             <OverlayTrigger
               placement="top"
               overlay={
-                <Tooltip id={`tooltip-${item.title.fi}`}>
+                <Tooltip id={`tooltip-${item.basicInfo.title}`}>
                   Hakuaika päättyy
                 </Tooltip>
               }
             >
-              <span className="d-block additional-info" style>
+              <span className="d-block additional-info">
                 <IoCalendarOutline />{' '}
                 {format(parseISO(item.applicationEndDate), 'dd.MM.yyyy HH:mm')}
               </span>
@@ -152,5 +93,5 @@ export default function JobItem({ item }: { item: any /* JobPostingEntry */ }) {
         </CardBodyLeft>
       </Card.Body>
     </Card>
-  ); */
+  );
 }
