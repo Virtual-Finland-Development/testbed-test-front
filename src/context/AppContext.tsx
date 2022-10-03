@@ -111,7 +111,6 @@ function AppProvider({ children }: AppProviderProps) {
    */
   const logIn = useCallback(
     (authProvider: AuthProvider, token: string, userEmail: string) => {
-      console.log(userEmail);
       dispatch({ type: ActionTypes.LOG_IN });
       localStorage.setItem(LOCAL_STORAGE_AUTH_PROVIDER, authProvider);
       localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
@@ -154,8 +153,6 @@ function AppProvider({ children }: AppProviderProps) {
         } else if (authProvider === AuthProvider.SUOMIFI) {
           ({ email } = userInfoResponse.data.profile);
         }
-        console.log(email);
-        // const { email } = userInfoResponse.data;
 
         logIn(authProvider, authToken, email);
         dispatch({ type: ActionTypes.SET_LOADING, loading: false });
