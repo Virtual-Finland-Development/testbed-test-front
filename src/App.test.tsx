@@ -43,7 +43,7 @@ describe('Test app authentication based rendering', () => {
   test('User should be authenticated when directed to auth route with loginCode. After authentication, user sees data selection input and selects open data.', async () => {
     // user is redirected to auth route with loginCode query param, user should be logged in
     customRender2(<App />, {
-      initialEntries: ['/auth?loginCode=123'],
+      initialEntries: ['/auth?provider=sinuna&loginCode=123'],
     });
 
     // select inputs can be found with 'combobox' role
@@ -70,7 +70,7 @@ describe('Test app authentication based rendering', () => {
   test('User clicks log out button, log out redirect should occur', async () => {
     // user is redirected to auth route with loginCode query param, user should be logged in
     customRender2(<App />, {
-      initialEntries: ['/auth?loginCode=123'],
+      initialEntries: ['/auth?provider=sinuna&loginCode=123'],
     });
 
     // logout button should be visible once user has authenticated

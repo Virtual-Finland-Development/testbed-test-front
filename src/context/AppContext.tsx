@@ -12,10 +12,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { appContextUrlEncoded } from '../constants';
 
 // api
-import api from '../api';
+import api, { AuthProvider } from '../api';
 
 // constants
 import {
+  LOCAL_STORAGE_AUTH_PROVIDER,
   LOCAL_STORAGE_AUTH_TOKEN,
   LOCAL_STORAGE_USER_EMAIL,
   LOCAL_STORAGE_ROUTE_NAME,
@@ -50,7 +51,11 @@ type Action = LogInAction | LogOutAction | LoadingAction;
 interface AppContextInterface {
   authenticated: boolean;
   loading: boolean;
-  logIn: (token: string, userEmail: string) => void;
+  logIn: (
+    authProvider: AuthProvider,
+    autToken: string,
+    userEmail: string
+  ) => void;
   logOut: () => void;
 }
 
@@ -102,21 +107,28 @@ function AppProvider({ children }: AppProviderProps) {
   const location = useLocation();
 
   /**
-   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage. Navigate to correct route based on selection.
+   * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage.
    */
-  const logIn = useCallback((token: string, userEmail: string) => {
-    dispatch({ type: ActionTypes.LOG_IN });
-    localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
-    localStorage.setItem(LOCAL_STORAGE_USER_EMAIL, userEmail);
-  }, []);
+  const logIn = useCallback(
+    (authProvider: AuthProvider, token: string, userEmail: string) => {
+      console.log(userEmail);
+      dispatch({ type: ActionTypes.LOG_IN });
+      localStorage.setItem(LOCAL_STORAGE_AUTH_PROVIDER, authProvider);
+      localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
+      // localStorage.setItem(LOCAL_STORAGE_USER_EMAIL, userEmail);
+    },
+    []
+  );
 
   /**
    * Handle log out. Clear authenntication state, clear local storage.
    */
   const logOut = useCallback(() => {
     dispatch({ type: ActionTypes.LOG_OUT });
+    localStorage.removeItem(LOCAL_STORAGE_AUTH_PROVIDER);
     localStorage.removeItem(LOCAL_STORAGE_AUTH_TOKEN);
     localStorage.removeItem(LOCAL_STORAGE_USER_EMAIL);
+    localStorage.removeItem(LOCAL_STORAGE_ROUTE_NAME);
   }, []);
 
   /**
@@ -124,15 +136,28 @@ function AppProvider({ children }: AppProviderProps) {
    * If token is still valid, response will hold user email, otherwise it throws 401.
    */
   const checkUserInfoStatus = useCallback(
-    async (token: string) => {
+    async (authProvider: AuthProvider, authToken: string) => {
       try {
-        const userInfoResponse = await api.getUserInfo({
-          token,
-          appContext: appContextUrlEncoded,
-        });
-        const { email } = userInfoResponse.data;
+        const userInfoResponse = await api.getUserInfo(
+          authProvider as AuthProvider,
+          {
+            token: authToken,
+            appContext: appContextUrlEncoded,
+          }
+        );
 
-        logIn(token, email);
+        // response differs between sinuna / suomifi
+        let email;
+
+        if (authProvider === AuthProvider.SINUNA) {
+          ({ email } = userInfoResponse.data);
+        } else if (authProvider === AuthProvider.SUOMIFI) {
+          ({ email } = userInfoResponse.data.profile);
+        }
+        console.log(email);
+        // const { email } = userInfoResponse.data;
+
+        logIn(authProvider, authToken, email);
         dispatch({ type: ActionTypes.SET_LOADING, loading: false });
       } catch (error) {
         // if getUserInfo throws 401 error, it means sinuna session expired and user needs to be logged in again
@@ -141,9 +166,12 @@ function AppProvider({ children }: AppProviderProps) {
             // log user out, set previous route name to local storage and direct user to login request
             localStorage.setItem(LOCAL_STORAGE_ROUTE_NAME, location.pathname);
             logOut();
-            window.location.assign(
-              `${api.AUTH_GW_ENDPOINT}/auth/openid/login-request?appContext=${appContextUrlEncoded}`
-            );
+
+            if (authProvider === 'sinuna') {
+              api.directToAuthGwLogin(AuthProvider.SINUNA);
+            } else if (authProvider === 'suomifi') {
+              api.directToAuthGwLogin(AuthProvider.SUOMIFI);
+            }
           } else {
             logOut();
             navigate('/');
@@ -158,15 +186,16 @@ function AppProvider({ children }: AppProviderProps) {
    * If auth token is found in local storage, check if user session is expired (Sinuna).
    */
   useEffect(() => {
+    const authProvider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
     const authToken = localStorage.getItem(LOCAL_STORAGE_AUTH_TOKEN);
     // const userEmail = localStorage.getItem(LOCAL_STORAGE_USER_EMAIL);
 
-    if (authToken) {
+    if (authProvider && authToken) {
       // dispatch({ type: ActionTypes.LOG_IN });
       dispatch({ type: ActionTypes.SET_LOADING, loading: true });
-      checkUserInfoStatus(authToken);
+      checkUserInfoStatus(authProvider as AuthProvider, authToken);
     }
-  }, [checkUserInfoStatus]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppContext.Provider

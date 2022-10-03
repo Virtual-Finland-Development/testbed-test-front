@@ -3,10 +3,10 @@ import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
 // api
-import api from '../../api';
+import api, { AuthProvider } from '../../api';
 
 // constants
-import { appContextUrlEncoded } from '../../constants';
+import { LOCAL_STORAGE_AUTH_PROVIDER } from '../../constants';
 
 export default function LogOut() {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,9 +17,9 @@ export default function LogOut() {
    */
   const handleLogOutClick = () => {
     setIsLoading(true);
-    window.location.assign(
-      `${api.AUTH_GW_ENDPOINT}/auth/openid/logout-request?appContext=${appContextUrlEncoded}`
-    );
+
+    const provider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER)!;
+    api.directToAuthGwLogout(provider as AuthProvider);
   };
 
   return (

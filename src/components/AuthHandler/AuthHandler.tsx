@@ -9,7 +9,7 @@ import { useAppContext } from '../../context/AppContext';
 import Loading from '../Loading/Loading';
 
 // api
-import api from '../../api';
+import api, { AuthProvider } from '../../api';
 
 // constants
 import {
@@ -26,45 +26,85 @@ export default function AuthHandler() {
   // parse query params
   const { search } = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(search), [search]);
-  const loginCodeParam = queryParams.get('loginCode')!;
+  const authProviderParam = queryParams.get('provider');
+  const loginCodeParam = queryParams.get('loginCode');
   const logOutParam = queryParams.get('logout');
 
   /**
-   * Handle authentication. Navigate to stored route / root.
+   * Handle Sinuna authentication. Navigate to stored route / root.
    */
-  const handleAuthentication = useCallback(async () => {
+  const handleSinunaAuthentication = useCallback(async () => {
     try {
       // get token
       const tokenResponse = await api.getAuthToken({
-        loginCode: loginCodeParam,
+        loginCode: loginCodeParam as string,
         appContext: appContextUrlEncoded,
       });
       const { token } = tokenResponse.data;
 
       // get user email after token retrieval
-      const userInfoResponse = await api.getUserInfo({
-        token,
-        appContext: appContextUrlEncoded,
-      });
+      const userInfoResponse = await api.getUserInfo(
+        authProviderParam as AuthProvider,
+        {
+          token,
+          appContext: appContextUrlEncoded,
+        }
+      );
       const { email: userEmail } = userInfoResponse.data;
 
-      logIn(token, userEmail);
+      logIn(authProviderParam as AuthProvider, token, userEmail);
       navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
     } catch (error) {
       setError(error);
     } finally {
       setLoading(false);
     }
-  }, [logIn, loginCodeParam, navigate]);
+  }, [logIn, loginCodeParam, navigate, authProviderParam]);
+
+  /**
+   * Handle Suomi.fi authentication. No separate token needs to be fetched.
+   * Use loginCode (suomi.fi nameID) to fetch userInfo. Navigate to stored route / root.
+   */
+  const handleSuomiFiAuthentication = useCallback(async () => {
+    try {
+      // get user info for SuomiFI auth
+      const userInfoResponse = await api.getUserInfo(
+        authProviderParam as AuthProvider,
+        {
+          token: loginCodeParam!,
+          appContext: appContextUrlEncoded,
+        }
+      );
+      const {
+        profile: { email },
+      } = userInfoResponse.data;
+
+      logIn(authProviderParam as AuthProvider, loginCodeParam!, email);
+      navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [authProviderParam, logIn, loginCodeParam, navigate]);
 
   /**
    * If loginCode provided in url params, try authenticate the user.
    */
   useEffect(() => {
-    if (loginCodeParam) {
-      handleAuthentication();
+    if (authProviderParam && loginCodeParam) {
+      if (authProviderParam === AuthProvider.SINUNA) {
+        handleSinunaAuthentication();
+      } else if (authProviderParam === AuthProvider.SUOMIFI) {
+        handleSuomiFiAuthentication();
+      }
     }
-  }, [handleAuthentication, loginCodeParam]);
+  }, [
+    handleSinunaAuthentication,
+    loginCodeParam,
+    authProviderParam,
+    handleSuomiFiAuthentication,
+  ]);
 
   /**
    * If logout redirect and logout flag in url params, log out user. Navigate to root.

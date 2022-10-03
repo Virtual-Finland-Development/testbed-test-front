@@ -1,5 +1,16 @@
 import axios from 'axios';
-import { LOCAL_STORAGE_AUTH_TOKEN } from '../constants';
+
+// constants
+import {
+  appContextUrlEncoded,
+  LOCAL_STORAGE_AUTH_PROVIDER,
+  LOCAL_STORAGE_AUTH_TOKEN,
+} from '../constants';
+
+export enum AuthProvider {
+  SINUNA = 'sinuna',
+  SUOMIFI = 'suomifi',
+}
 
 const AUTH_GW_ENDPOINT =
   'https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com';
@@ -27,12 +38,15 @@ const axiosInstance = axios.create();
 
 // Axios request interceptor. Pass token to request Authorization for selected routes, if found.
 axiosInstance.interceptors.request.use(config => {
+  const provider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
   const token = localStorage.getItem(LOCAL_STORAGE_AUTH_TOKEN);
 
   if (config.url !== undefined && config.headers !== undefined) {
     if ([OPEN_DATA_URL].includes(config.url)) {
       config.headers.Authorization = token ? `Bearer ${token}` : '';
-      config.headers['X-authorization-provider'] = 'sinuna';
+      config.headers['X-authorization-provider'] = provider
+        ? `${provider}`
+        : '';
     }
   }
 
@@ -42,6 +56,20 @@ axiosInstance.interceptors.request.use(config => {
 /**
  * AUTH
  */
+function directToAuthGwLogin(authProvider: AuthProvider) {
+  const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
+  window.location.assign(
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/login-request?appContext=${appContextUrlEncoded}`
+  );
+}
+
+function directToAuthGwLogout(authProvider: AuthProvider) {
+  const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
+  window.location.assign(
+    `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/logout-request?appContext=${appContextUrlEncoded}`
+  );
+}
+
 async function getAuthToken(authPayload: {
   loginCode: string;
   appContext: string;
@@ -52,10 +80,17 @@ async function getAuthToken(authPayload: {
   );
 }
 
-async function getUserInfo(payload: { token: string; appContext: string }) {
+async function getUserInfo(
+  authProvider: AuthProvider,
+  payload: { token: string; appContext: string }
+) {
+  const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   return axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/openid/user-info-request`,
-    payload
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/user-info-request`,
+    payload,
+    {
+      withCredentials: true,
+    }
   );
 }
 
@@ -73,6 +108,8 @@ async function getData(payload: { city: string; year: string }) {
 const api = {
   AUTH_GW_ENDPOINT,
   OPEN_DATA_URL,
+  directToAuthGwLogin,
+  directToAuthGwLogout,
   getAuthToken,
   getUserInfo,
   getKeyFigures,
