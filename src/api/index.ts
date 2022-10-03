@@ -32,6 +32,7 @@ axiosInstance.interceptors.request.use(config => {
   if (config.url !== undefined && config.headers !== undefined) {
     if ([OPEN_DATA_URL].includes(config.url)) {
       config.headers.Authorization = token ? `Bearer ${token}` : '';
+      config.headers['X-authorization-provider'] = 'sinuna';
     }
   }
 
