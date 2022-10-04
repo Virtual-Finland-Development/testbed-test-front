@@ -27,7 +27,7 @@ describe('Test app authentication based rendering', () => {
 
     // once login button clicked, user should be directed to sinuna authentication (api gateway route)
     expect(window.location.assign).toBeCalledWith(
-      `${api.AUTH_GW_ENDPOINT}/auth/openid/login-request?appContext=${appContextUrlEncoded}`
+      `${api.AUTH_GW_ENDPOINT}/auth/openid/sinuna/login-request?appContext=${appContextUrlEncoded}`
     );
 
     // login button should be disabled when login action is clicked
@@ -87,7 +87,7 @@ describe('Test app authentication based rendering', () => {
 
     // once log pit button clicked, user should be directed to sinuna authentication log out (api gateway route)
     expect(window.location.assign).toBeCalledWith(
-      `${api.AUTH_GW_ENDPOINT}/auth/openid/logout-request?appContext=${appContextUrlEncoded}`
+      `${api.AUTH_GW_ENDPOINT}/auth/openid/sinuna/logout-request?appContext=${appContextUrlEncoded}`
     );
 
     // log out button text should be changed to 'Kirjaudutaan ulos...' once logout redirect happens

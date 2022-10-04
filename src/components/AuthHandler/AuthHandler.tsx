@@ -36,7 +36,7 @@ export default function AuthHandler() {
   const handleSinunaAuthentication = useCallback(async () => {
     try {
       // get token
-      const tokenResponse = await api.getAuthToken({
+      const tokenResponse = await api.getSinunaAuthToken({
         loginCode: loginCodeParam as string,
         appContext: appContextUrlEncoded,
       });

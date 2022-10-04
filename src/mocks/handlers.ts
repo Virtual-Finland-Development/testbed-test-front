@@ -41,13 +41,13 @@ export const handlers = [
     );
   }),
   rest.post(
-    `${api.AUTH_GW_ENDPOINT}/auth/openid/auth-token-request`,
+    `${api.AUTH_GW_ENDPOINT}/auth/openid/sinuna/auth-token-request`,
     (req, res, ctx) => {
       return res(ctx.json({ token: '123-random-token' }));
     }
   ),
   rest.post(
-    `${api.AUTH_GW_ENDPOINT}/auth/openid/user-info-request`,
+    `${api.AUTH_GW_ENDPOINT}/auth/openid/sinuna/user-info-request`,
     (req, res, ctx) => {
       return res(ctx.json({ email: 'aku.ankka@email.com' }));
     }
