@@ -36,10 +36,13 @@ export default function AuthHandler() {
   const handleSinunaAuthentication = useCallback(async () => {
     try {
       // get token
-      const tokenResponse = await api.getSinunaAuthToken({
-        loginCode: loginCodeParam as string,
-        appContext: appContextUrlEncoded,
-      });
+      const tokenResponse = await api.getAuthToken(
+        {
+          loginCode: loginCodeParam as string,
+          appContext: appContextUrlEncoded,
+        },
+        AuthProvider.SINUNA
+      );
       const { token } = tokenResponse.data;
 
       // get user email after token retrieval
@@ -63,15 +66,25 @@ export default function AuthHandler() {
 
   /**
    * Handle Suomi.fi authentication. No separate token needs to be fetched.
-   * Use loginCode (suomi.fi nameID) to fetch userInfo. Navigate to stored route / root.
+   * Use loginCode (suomi.fi nameID) to fetch the token, then the userInfo. Navigate to stored route / root.
    */
   const handleSuomiFiAuthentication = useCallback(async () => {
     try {
+      // get token
+      const tokenResponse = await api.getAuthToken(
+        {
+          loginCode: loginCodeParam as string,
+          appContext: appContextUrlEncoded,
+        },
+        AuthProvider.SUOMIFI
+      );
+      const { token } = tokenResponse.data;
+
       // get user info for SuomiFI auth
       const userInfoResponse = await api.getUserInfo(
         authProviderParam as AuthProvider,
         {
-          token: loginCodeParam!,
+          token: token!,
           appContext: appContextUrlEncoded,
         }
       );
@@ -79,8 +92,7 @@ export default function AuthHandler() {
         profile: { email },
       } = userInfoResponse.data;
 
-      const { accessToken } = userInfoResponse.data;
-      logIn(authProviderParam as AuthProvider, accessToken!, email);
+      logIn(authProviderParam as AuthProvider, token!, email);
       navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
     } catch (error) {
       setError(error);

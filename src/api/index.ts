@@ -70,13 +70,20 @@ function directToAuthGwLogout(authProvider: AuthProvider) {
   );
 }
 
-async function getSinunaAuthToken(authPayload: {
-  loginCode: string;
-  appContext: string;
-}) {
+async function getAuthToken(
+  authPayload: {
+    loginCode: string;
+    appContext: string;
+  },
+  authProvider: AuthProvider
+) {
+  const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   return axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/openid/sinuna/auth-token-request`,
-    authPayload
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/auth-token-request`,
+    authPayload,
+    {
+      withCredentials: true,
+    }
   );
 }
 
@@ -110,7 +117,7 @@ const api = {
   OPEN_DATA_URL,
   directToAuthGwLogin,
   directToAuthGwLogout,
-  getSinunaAuthToken,
+  getAuthToken,
   getUserInfo,
   getKeyFigures,
   getData,
