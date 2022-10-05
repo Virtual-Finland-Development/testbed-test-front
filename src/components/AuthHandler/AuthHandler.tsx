@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 // context
 import { useAppContext } from '../../context/AppContext';
@@ -79,7 +79,8 @@ export default function AuthHandler() {
         profile: { email },
       } = userInfoResponse.data;
 
-      logIn(authProviderParam as AuthProvider, loginCodeParam!, email);
+      const { accessToken } = userInfoResponse.data;
+      logIn(authProviderParam as AuthProvider, accessToken!, email);
       navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
     } catch (error) {
       setError(error);
