@@ -59,23 +59,23 @@ axiosInstance.interceptors.request.use(config => {
 function directToAuthGwLogin(authProvider: AuthProvider) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   window.location.assign(
-    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/login-request?appContext=${appContextUrlEncoded}`
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/login-request?appContext=${appContextUrlEncoded}`
   );
 }
 
 function directToAuthGwLogout(authProvider: AuthProvider) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   window.location.assign(
-    `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/logout-request?appContext=${appContextUrlEncoded}`
+    `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/logout-request?appContext=${appContextUrlEncoded}`
   );
 }
 
-async function getAuthToken(authPayload: {
+async function getSinunaAuthToken(authPayload: {
   loginCode: string;
   appContext: string;
 }) {
   return axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/openid/auth-token-request`,
+    `${AUTH_GW_ENDPOINT}/auth/openid/sinuna/auth-token-request`,
     authPayload
   );
 }
@@ -86,7 +86,7 @@ async function getUserInfo(
 ) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   return axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/user-info-request`,
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/user-info-request`,
     payload,
     {
       withCredentials: true,
@@ -110,7 +110,7 @@ const api = {
   OPEN_DATA_URL,
   directToAuthGwLogin,
   directToAuthGwLogout,
-  getAuthToken,
+  getSinunaAuthToken,
   getUserInfo,
   getKeyFigures,
   getData,
