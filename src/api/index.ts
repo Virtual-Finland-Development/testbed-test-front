@@ -82,7 +82,7 @@ function directToAuthGwLogout(authProvider: AuthProvider) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   const idToken = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKEN).idToken;
   window.location.assign(
-    `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/logout-request?appContext=${appContextUrlEncoded}?idToken=${idToken}`
+    `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/logout-request?appContext=${appContextUrlEncoded}&idToken=${idToken}`
   );
 }
 
