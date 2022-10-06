@@ -140,7 +140,7 @@ function AppProvider({ children }: AppProviderProps) {
         const userInfoResponse = await api.getUserInfo(
           authProvider as AuthProvider,
           {
-            token: authToken,
+            accessToken: authToken,
             appContext: appContextUrlEncoded,
           }
         );
