@@ -6,11 +6,17 @@ import {
   LOCAL_STORAGE_AUTH_PROVIDER,
   LOCAL_STORAGE_AUTH_TOKEN,
 } from '../constants';
+import { JSONLocalStorage } from '../context/AppContext';
 
 export enum AuthProvider {
   SINUNA = 'sinuna',
   SUOMIFI = 'suomifi',
 }
+
+export type AuthTokens = {
+  accessToken: string; // UserInfoRequest
+  idToken: string; // Other requests (except for Sinuna, which uses accessToken instead)
+};
 
 const AUTH_GW_ENDPOINT =
   'https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com';
@@ -39,11 +45,20 @@ const axiosInstance = axios.create();
 // Axios request interceptor. Pass token to request Authorization for selected routes, if found.
 axiosInstance.interceptors.request.use(config => {
   const provider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
-  const token = localStorage.getItem(LOCAL_STORAGE_AUTH_TOKEN);
+  const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKEN);
+
+  // The token that is used to authorize the user in the protected, external API queries
+  let authorizationToken = authTokens.idToken;
+  // The exception: Sinuna does not operate with idToken, use accessToken instead
+  if (provider === AuthProvider.SINUNA) {
+    authorizationToken = authTokens.accessToken;
+  }
 
   if (config.url !== undefined && config.headers !== undefined) {
     if ([OPEN_DATA_URL].includes(config.url)) {
-      config.headers.Authorization = token ? `Bearer ${token}` : '';
+      config.headers.Authorization = authorizationToken
+        ? `Bearer ${authorizationToken}`
+        : '';
       config.headers['X-authorization-provider'] = provider
         ? `${provider}`
         : '';
@@ -76,15 +91,16 @@ async function getAuthTokens(
     appContext: string;
   },
   authProvider: AuthProvider
-) {
+): Promise<AuthTokens> {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
-  return axiosInstance.post(
+  const response = await axiosInstance.post(
     `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/auth-token-request`,
     authPayload,
     {
       withCredentials: true,
     }
   );
+  return response.data;
 }
 
 async function getUserInfo(
