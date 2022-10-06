@@ -17,7 +17,7 @@ import api, { AuthProvider, AuthTokens } from '../api';
 // constants
 import {
   LOCAL_STORAGE_AUTH_PROVIDER,
-  LOCAL_STORAGE_AUTH_TOKEN,
+  LOCAL_STORAGE_AUTH_TOKENS,
   LOCAL_STORAGE_ROUTE_NAME,
   LOCAL_STORAGE_USER_EMAIL,
 } from '../constants';
@@ -126,7 +126,7 @@ function AppProvider({ children }: AppProviderProps) {
     (authProvider: AuthProvider, tokens: AuthTokens, userEmail: string) => {
       dispatch({ type: ActionTypes.LOG_IN });
       localStorage.setItem(LOCAL_STORAGE_AUTH_PROVIDER, authProvider);
-      JSONLocalStorage.set(LOCAL_STORAGE_AUTH_TOKEN, tokens);
+      JSONLocalStorage.set(LOCAL_STORAGE_AUTH_TOKENS, tokens);
       // localStorage.setItem(LOCAL_STORAGE_USER_EMAIL, userEmail);
     },
     []
@@ -138,7 +138,7 @@ function AppProvider({ children }: AppProviderProps) {
   const logOut = useCallback(() => {
     dispatch({ type: ActionTypes.LOG_OUT });
     localStorage.removeItem(LOCAL_STORAGE_AUTH_PROVIDER);
-    localStorage.removeItem(LOCAL_STORAGE_AUTH_TOKEN);
+    localStorage.removeItem(LOCAL_STORAGE_AUTH_TOKENS);
     localStorage.removeItem(LOCAL_STORAGE_USER_EMAIL);
     localStorage.removeItem(LOCAL_STORAGE_ROUTE_NAME);
   }, []);
@@ -197,7 +197,7 @@ function AppProvider({ children }: AppProviderProps) {
    */
   useEffect(() => {
     const authProvider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
-    const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKEN);
+    const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS);
     // const userEmail = localStorage.getItem(LOCAL_STORAGE_USER_EMAIL);
 
     if (authProvider && authTokens) {

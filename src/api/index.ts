@@ -4,7 +4,7 @@ import axios from 'axios';
 import {
   appContextUrlEncoded,
   LOCAL_STORAGE_AUTH_PROVIDER,
-  LOCAL_STORAGE_AUTH_TOKEN,
+  LOCAL_STORAGE_AUTH_TOKENS,
 } from '../constants';
 import { JSONLocalStorage } from '../context/AppContext';
 
@@ -45,7 +45,7 @@ const axiosInstance = axios.create();
 // Axios request interceptor. Pass token to request Authorization for selected routes, if found.
 axiosInstance.interceptors.request.use(config => {
   const provider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
-  const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKEN);
+  const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS);
 
   if (config.url !== undefined && config.headers !== undefined) {
     if (authTokens && [OPEN_DATA_URL].includes(config.url)) {
@@ -80,7 +80,7 @@ function directToAuthGwLogin(authProvider: AuthProvider) {
 
 function directToAuthGwLogout(authProvider: AuthProvider) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
-  const idToken = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKEN).idToken;
+  const idToken = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS).idToken;
   window.location.assign(
     `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/logout-request?appContext=${appContextUrlEncoded}&idToken=${idToken}`
   );
