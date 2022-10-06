@@ -31,93 +31,63 @@ export default function AuthHandler() {
   const logOutParam = queryParams.get('logout');
 
   /**
-   * Handle Sinuna authentication. Navigate to stored route / root.
+   * Handle authentication for Sinuna/Suomi.fi.
+   * Fetch token, fetch user email. Navigate to stored route / root.
    */
-  const handleSinunaAuthentication = useCallback(async () => {
-    try {
-      // get token
-      const tokenResponse = await api.getAuthToken(
-        {
-          loginCode: loginCodeParam as string,
-          appContext: appContextUrlEncoded,
-        },
-        AuthProvider.SINUNA
-      );
-      const { token } = tokenResponse.data;
+  const handleAuthentication = useCallback(
+    async (authProvider: AuthProvider) => {
+      try {
+        // get token
+        const tokenResponse = await api.getAuthToken(
+          {
+            loginCode: loginCodeParam as string,
+            appContext: appContextUrlEncoded,
+          },
+          authProvider
+        );
+        const { token } = tokenResponse.data;
 
-      // get user email after token retrieval
-      const userInfoResponse = await api.getUserInfo(
-        authProviderParam as AuthProvider,
-        {
-          token,
-          appContext: appContextUrlEncoded,
-        }
-      );
-      const { email: userEmail } = userInfoResponse.data;
+        // get user email after token retrieval, response differs between auth providers
+        let userEmail;
 
-      logIn(authProviderParam as AuthProvider, token, userEmail);
-      navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
-    } catch (error) {
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [logIn, loginCodeParam, navigate, authProviderParam]);
-
-  /**
-   * Handle Suomi.fi authentication. No separate token needs to be fetched.
-   * Use loginCode (suomi.fi nameID) to fetch the token, then the userInfo. Navigate to stored route / root.
-   */
-  const handleSuomiFiAuthentication = useCallback(async () => {
-    try {
-      // get token
-      const tokenResponse = await api.getAuthToken(
-        {
-          loginCode: loginCodeParam as string,
-          appContext: appContextUrlEncoded,
-        },
-        AuthProvider.SUOMIFI
-      );
-      const { token } = tokenResponse.data;
-
-      // get user info for SuomiFI auth
-      const userInfoResponse = await api.getUserInfo(
-        authProviderParam as AuthProvider,
-        {
+        const userInfoResponse = await api.getUserInfo(authProvider, {
           token: token!,
           appContext: appContextUrlEncoded,
-        }
-      );
-      const {
-        profile: { email },
-      } = userInfoResponse.data;
+        });
 
-      logIn(authProviderParam as AuthProvider, token!, email);
-      navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
-    } catch (error) {
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [authProviderParam, logIn, loginCodeParam, navigate]);
+        if (authProvider === AuthProvider.SINUNA) {
+          ({ email: userEmail } = userInfoResponse.data);
+        }
+
+        if (authProvider === AuthProvider.SUOMIFI) {
+          ({
+            profile: { email: userEmail },
+          } = userInfoResponse.data);
+        }
+
+        logIn(authProviderParam as AuthProvider, token, userEmail);
+        navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authProviderParam, logIn, loginCodeParam, navigate]
+  );
 
   /**
    * If loginCode provided in url params, try authenticate the user.
    */
   useEffect(() => {
     if (authProviderParam && loginCodeParam) {
-      if (authProviderParam === AuthProvider.SINUNA) {
-        handleSinunaAuthentication();
-      } else if (authProviderParam === AuthProvider.SUOMIFI) {
-        handleSuomiFiAuthentication();
+      if (
+        Object.values(AuthProvider).includes(authProviderParam as AuthProvider)
+      ) {
+        handleAuthentication(authProviderParam as AuthProvider);
       }
     }
-  }, [
-    handleSinunaAuthentication,
-    loginCodeParam,
-    authProviderParam,
-    handleSuomiFiAuthentication,
-  ]);
+  }, [authProviderParam, handleAuthentication, loginCodeParam]);
 
   /**
    * If logout redirect and logout flag in url params, log out user. Navigate to root.
