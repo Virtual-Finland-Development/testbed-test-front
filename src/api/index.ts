@@ -47,15 +47,15 @@ axiosInstance.interceptors.request.use(config => {
   const provider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
   const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKEN);
 
-  // The token that is used to authorize the user in the protected, external API queries
-  let authorizationToken = authTokens.idToken;
-  // The exception: Sinuna does not operate with idToken, use accessToken instead
-  if (provider === AuthProvider.SINUNA) {
-    authorizationToken = authTokens.accessToken;
-  }
-
   if (config.url !== undefined && config.headers !== undefined) {
-    if ([OPEN_DATA_URL].includes(config.url)) {
+    if (authTokens && [OPEN_DATA_URL].includes(config.url)) {
+      // The token that is used to authorize the user in the protected, external API queries
+      let authorizationToken = authTokens.idToken;
+      // The exception: Sinuna does not operate with idToken, use accessToken instead
+      if (provider === AuthProvider.SINUNA) {
+        authorizationToken = authTokens.accessToken;
+      }
+
       config.headers.Authorization = authorizationToken
         ? `Bearer ${authorizationToken}`
         : '';
