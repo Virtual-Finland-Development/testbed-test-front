@@ -38,20 +38,20 @@ export default function AuthHandler() {
     async (authProvider: AuthProvider) => {
       try {
         // get token
-        const tokenResponse = await api.getAuthToken(
+        const tokenResponse = await api.getAuthTokens(
           {
             loginCode: loginCodeParam as string,
             appContext: appContextUrlEncoded,
           },
           authProvider
         );
-        const { token } = tokenResponse.data;
+        const { accessToken, idToken } = tokenResponse.data;
 
         // get user email after token retrieval, response differs between auth providers
         let userEmail;
 
         const userInfoResponse = await api.getUserInfo(authProvider, {
-          token: token!,
+          accessToken: accessToken!,
           appContext: appContextUrlEncoded,
         });
 
@@ -65,7 +65,14 @@ export default function AuthHandler() {
           } = userInfoResponse.data);
         }
 
-        logIn(authProviderParam as AuthProvider, token, userEmail);
+        // The token that is used to authorize the user in the protected, external API queries
+        let authorizationToken = idToken;
+        // The exception: Sinuna does not operate with idToken, use accessToken instead
+        if (authProvider === AuthProvider.SINUNA) {
+          authorizationToken = accessToken;
+        }
+
+        logIn(authProviderParam as AuthProvider, authorizationToken, userEmail);
         navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
       } catch (error) {
         setError(error);

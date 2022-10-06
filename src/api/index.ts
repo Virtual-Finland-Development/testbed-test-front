@@ -70,7 +70,7 @@ function directToAuthGwLogout(authProvider: AuthProvider) {
   );
 }
 
-async function getAuthToken(
+async function getAuthTokens(
   authPayload: {
     loginCode: string;
     appContext: string;
@@ -89,7 +89,7 @@ async function getAuthToken(
 
 async function getUserInfo(
   authProvider: AuthProvider,
-  payload: { token: string; appContext: string }
+  payload: { accessToken: string; appContext: string }
 ) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   return axiosInstance.post(
@@ -117,7 +117,7 @@ const api = {
   OPEN_DATA_URL,
   directToAuthGwLogin,
   directToAuthGwLogout,
-  getAuthToken,
+  getAuthTokens,
   getUserInfo,
   getKeyFigures,
   getData,
