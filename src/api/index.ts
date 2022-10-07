@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { OpenIdAuthTokenRequest200Response } from './generated-types/authgw';
+import { Paths as AuthGwPaths } from './generated-types/authgw';
 
 // constants
 import {
@@ -74,7 +74,7 @@ function directToAuthGwLogout(authProvider: AuthProvider) {
 async function getSinunaAuthToken(authPayload: {
   loginCode: string;
   appContext: string;
-}): Promise<OpenIdAuthTokenRequest200Response> {
+}): Promise<AuthGwPaths.OpenIdAuthTokenRequest.Responses.$200> {
   const response = await axiosInstance.post(
     `${AUTH_GW_ENDPOINT}/auth/openid/sinuna/auth-token-request`,
     authPayload
