@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 // context
 import { useAppContext } from '../../context/AppContext';
@@ -40,7 +40,7 @@ export default function AuthHandler() {
         loginCode: loginCodeParam as string,
         appContext: appContextUrlEncoded,
       });
-      const { token } = tokenResponse.data;
+      const { token } = tokenResponse;
 
       // get user email after token retrieval
       const userInfoResponse = await api.getUserInfo(

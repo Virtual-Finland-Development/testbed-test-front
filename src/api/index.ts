@@ -75,10 +75,11 @@ async function getSinunaAuthToken(authPayload: {
   loginCode: string;
   appContext: string;
 }): Promise<OpenIdAuthTokenRequest200Response> {
-  return axiosInstance.post(
+  const response = await axiosInstance.post(
     `${AUTH_GW_ENDPOINT}/auth/openid/sinuna/auth-token-request`,
     authPayload
   );
+  return response.data;
 }
 
 async function getUserInfo(
