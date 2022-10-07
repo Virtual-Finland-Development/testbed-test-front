@@ -1,17 +1,22 @@
 import axios from 'axios';
-import { Paths as AuthGwPaths } from './generated-types/authgw';
 
 // constants
 import {
   appContextUrlEncoded,
   LOCAL_STORAGE_AUTH_PROVIDER,
-  LOCAL_STORAGE_AUTH_TOKEN,
+  LOCAL_STORAGE_AUTH_TOKENS,
 } from '../constants';
+import { JSONLocalStorage } from '../context/AppContext';
 
 export enum AuthProvider {
   SINUNA = 'sinuna',
   SUOMIFI = 'suomifi',
 }
+
+export type AuthTokens = {
+  accessToken: string; // UserInfoRequest
+  idToken: string; // Other requests (except for Sinuna, which uses accessToken instead)
+};
 
 const AUTH_GW_ENDPOINT =
   'https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com';
@@ -40,11 +45,20 @@ const axiosInstance = axios.create();
 // Axios request interceptor. Pass token to request Authorization for selected routes, if found.
 axiosInstance.interceptors.request.use(config => {
   const provider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
-  const token = localStorage.getItem(LOCAL_STORAGE_AUTH_TOKEN);
+  const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS);
 
   if (config.url !== undefined && config.headers !== undefined) {
-    if ([OPEN_DATA_URL].includes(config.url)) {
-      config.headers.Authorization = token ? `Bearer ${token}` : '';
+    if (authTokens && [OPEN_DATA_URL].includes(config.url)) {
+      // The token that is used to authorize the user in the protected, external API queries
+      let authorizationToken = authTokens.idToken;
+      // The exception: Sinuna does not operate with idToken, use accessToken instead
+      if (provider === AuthProvider.SINUNA) {
+        authorizationToken = authTokens.accessToken;
+      }
+
+      config.headers.Authorization = authorizationToken
+        ? `Bearer ${authorizationToken}`
+        : '';
       config.headers['X-authorization-provider'] = provider
         ? `${provider}`
         : '';
@@ -66,25 +80,33 @@ function directToAuthGwLogin(authProvider: AuthProvider) {
 
 function directToAuthGwLogout(authProvider: AuthProvider) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
+  const idToken = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS).idToken;
   window.location.assign(
-    `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/logout-request?appContext=${appContextUrlEncoded}`
+    `${api.AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/logout-request?appContext=${appContextUrlEncoded}&idToken=${idToken}`
   );
 }
 
-async function getSinunaAuthToken(authPayload: {
-  loginCode: string;
-  appContext: string;
-}): Promise<AuthGwPaths.OpenIdAuthTokenRequest.Responses.$200> {
+async function getAuthTokens(
+  authPayload: {
+    loginCode: string;
+    appContext: string;
+  },
+  authProvider: AuthProvider
+): Promise<AuthTokens> {
+  const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   const response = await axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/openid/sinuna/auth-token-request`,
-    authPayload
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/auth-token-request`,
+    authPayload,
+    {
+      withCredentials: true,
+    }
   );
   return response.data;
 }
 
 async function getUserInfo(
   authProvider: AuthProvider,
-  payload: { token: string; appContext: string }
+  payload: { accessToken: string; appContext: string }
 ) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   return axiosInstance.post(
@@ -112,7 +134,7 @@ const api = {
   OPEN_DATA_URL,
   directToAuthGwLogin,
   directToAuthGwLogout,
-  getSinunaAuthToken,
+  getAuthTokens,
   getUserInfo,
   getKeyFigures,
   getData,
