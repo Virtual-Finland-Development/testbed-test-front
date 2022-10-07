@@ -1,25 +1,25 @@
+import { AxiosError } from 'axios';
 import {
   createContext,
-  useEffect,
   useCallback,
-  useReducer,
   useContext,
+  useEffect,
+  useReducer,
 } from 'react';
-import { AxiosError } from 'axios';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // constants
 import { appContextUrlEncoded } from '../constants';
 
 // api
-import api, { AuthProvider } from '../api';
+import api, { AuthProvider, AuthTokens } from '../api';
 
 // constants
 import {
   LOCAL_STORAGE_AUTH_PROVIDER,
-  LOCAL_STORAGE_AUTH_TOKEN,
-  LOCAL_STORAGE_USER_EMAIL,
+  LOCAL_STORAGE_AUTH_TOKENS,
   LOCAL_STORAGE_ROUTE_NAME,
+  LOCAL_STORAGE_USER_EMAIL,
 } from '../constants';
 
 interface AppState {
@@ -53,7 +53,7 @@ interface AppContextInterface {
   loading: boolean;
   logIn: (
     authProvider: AuthProvider,
-    autToken: string,
+    autTokens: AuthTokens,
     userEmail: string
   ) => void;
   logOut: () => void;
@@ -95,6 +95,19 @@ function reducer(state: AppState, action: Action) {
 }
 
 /**
+ * Helper function to get auth tokens from query params
+ */
+export const JSONLocalStorage = {
+  get(key: string) {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  },
+  set(key: string, value: any) {
+    localStorage.setItem(key, JSON.stringify(value));
+  },
+};
+
+/**
  * App Context
  */
 const AppContext = createContext<AppContextInterface | undefined>(undefined);
@@ -110,10 +123,10 @@ function AppProvider({ children }: AppProviderProps) {
    * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage.
    */
   const logIn = useCallback(
-    (authProvider: AuthProvider, token: string, userEmail: string) => {
+    (authProvider: AuthProvider, tokens: AuthTokens, userEmail: string) => {
       dispatch({ type: ActionTypes.LOG_IN });
       localStorage.setItem(LOCAL_STORAGE_AUTH_PROVIDER, authProvider);
-      localStorage.setItem(LOCAL_STORAGE_AUTH_TOKEN, token);
+      JSONLocalStorage.set(LOCAL_STORAGE_AUTH_TOKENS, tokens);
       // localStorage.setItem(LOCAL_STORAGE_USER_EMAIL, userEmail);
     },
     []
@@ -125,7 +138,7 @@ function AppProvider({ children }: AppProviderProps) {
   const logOut = useCallback(() => {
     dispatch({ type: ActionTypes.LOG_OUT });
     localStorage.removeItem(LOCAL_STORAGE_AUTH_PROVIDER);
-    localStorage.removeItem(LOCAL_STORAGE_AUTH_TOKEN);
+    localStorage.removeItem(LOCAL_STORAGE_AUTH_TOKENS);
     localStorage.removeItem(LOCAL_STORAGE_USER_EMAIL);
     localStorage.removeItem(LOCAL_STORAGE_ROUTE_NAME);
   }, []);
@@ -135,12 +148,12 @@ function AppProvider({ children }: AppProviderProps) {
    * If token is still valid, response will hold user email, otherwise it throws 401.
    */
   const checkUserInfoStatus = useCallback(
-    async (authProvider: AuthProvider, authToken: string) => {
+    async (authProvider: AuthProvider, tokens: AuthTokens) => {
       try {
         const userInfoResponse = await api.getUserInfo(
           authProvider as AuthProvider,
           {
-            token: authToken,
+            accessToken: tokens.accessToken,
             appContext: appContextUrlEncoded,
           }
         );
@@ -154,7 +167,7 @@ function AppProvider({ children }: AppProviderProps) {
           ({ email } = userInfoResponse.data.profile);
         }
 
-        logIn(authProvider, authToken, email);
+        logIn(authProvider, tokens, email);
         dispatch({ type: ActionTypes.SET_LOADING, loading: false });
       } catch (error) {
         // if getUserInfo throws 401 error, it means sinuna session expired and user needs to be logged in again
@@ -184,13 +197,13 @@ function AppProvider({ children }: AppProviderProps) {
    */
   useEffect(() => {
     const authProvider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
-    const authToken = localStorage.getItem(LOCAL_STORAGE_AUTH_TOKEN);
+    const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS);
     // const userEmail = localStorage.getItem(LOCAL_STORAGE_USER_EMAIL);
 
-    if (authProvider && authToken) {
+    if (authProvider && authTokens) {
       // dispatch({ type: ActionTypes.LOG_IN });
       dispatch({ type: ActionTypes.SET_LOADING, loading: true });
-      checkUserInfoStatus(authProvider as AuthProvider, authToken);
+      checkUserInfoStatus(authProvider as AuthProvider, authTokens);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
