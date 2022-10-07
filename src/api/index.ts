@@ -7,6 +7,7 @@ import {
   LOCAL_STORAGE_AUTH_TOKENS,
 } from '../constants';
 import { JSONLocalStorage } from '../context/AppContext';
+import { Paths } from './generated-types/authgw';
 
 export enum AuthProvider {
   SINUNA = 'sinuna',
@@ -92,7 +93,7 @@ async function getAuthTokens(
     appContext: string;
   },
   authProvider: AuthProvider
-): Promise<AuthTokens> {
+): Promise<Paths.OpenIdAuthTokenRequest.Responses.$200> {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   const response = await axiosInstance.post(
     `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/auth-token-request`,

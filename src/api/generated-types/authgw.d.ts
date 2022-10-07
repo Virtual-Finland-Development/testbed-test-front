@@ -49,11 +49,12 @@ declare namespace Paths {
         }
         namespace Responses {
             export interface $200 {
-                token?: string;
-                expiresIn?: number;
+                accessToken: string;
+                idToken: string;
+                expiresIn: number;
             }
             export interface $401 {
-                message?: string;
+                message: string;
             }
         }
     }
@@ -81,7 +82,7 @@ declare namespace Paths {
             nonce?: Parameters.Nonce;
         }
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -97,7 +98,7 @@ declare namespace Paths {
             appContext: Parameters.AppContext;
         }
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -115,7 +116,7 @@ declare namespace Paths {
             idToken?: Parameters.IdToken;
         }
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -131,7 +132,7 @@ declare namespace Paths {
             state?: Parameters.State;
         }
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -143,23 +144,23 @@ declare namespace Paths {
             provider: Parameters.Provider;
         }
         export interface RequestBody {
-            token?: string;
-            appContext?: string;
+            accessToken: string;
+            appContext: string;
         }
         namespace Responses {
             export interface $200 {
-                sub?: string;
+                sub: string;
                 inum?: string;
                 email?: string;
             }
             export interface $401 {
-                message?: string;
+                message: string;
             }
         }
     }
     namespace Root {
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -171,16 +172,16 @@ declare namespace Paths {
             provider: Parameters.Provider;
         }
         export interface RequestBody {
-            loginCode?: string;
-            appContext?: string;
+            loginCode: string;
+            appContext: string;
         }
         namespace Responses {
             export interface $200 {
                 token?: string;
-                expiresIn?: number;
+                expiresIn: number;
             }
             export interface $401 {
-                message?: string;
+                message: string;
             }
         }
     }
@@ -192,7 +193,7 @@ declare namespace Paths {
             provider: Parameters.Provider;
         }
         namespace Responses {
-            export interface $200 {
+            export interface $303 {
             }
         }
     }
@@ -209,7 +210,7 @@ declare namespace Paths {
             provider?: Parameters.Provider;
         }
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -227,7 +228,7 @@ declare namespace Paths {
             idToken?: Parameters.IdToken;
         }
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -249,7 +250,7 @@ declare namespace Paths {
             Signature: Parameters.Signature;
         }
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -261,20 +262,20 @@ declare namespace Paths {
             provider: Parameters.Provider;
         }
         export interface RequestBody {
-            token?: string;
-            appContext?: string;
+            accessToken: string;
+            appContext: string;
         }
         namespace Responses {
             export interface $200 {
             }
             export interface $401 {
-                message?: string;
+                message: string;
             }
         }
     }
     namespace Swagger {
         namespace Responses {
-            export interface $307 {
+            export interface $303 {
             }
         }
     }
@@ -376,7 +377,7 @@ export interface OperationMethods {
     parameters?: Parameters<Paths.Saml2AuthenticateResponse.PathParameters> | null,
     data?: any,
     config?: AxiosRequestConfig  
-  ): OperationResponse<Paths.Saml2AuthenticateResponse.Responses.$200>
+  ): OperationResponse<any>
   /**
    * Saml2LogoutRequest
    */
@@ -538,7 +539,7 @@ export interface PathsDictionary {
       parameters?: Parameters<Paths.Saml2AuthenticateResponse.PathParameters> | null,
       data?: any,
       config?: AxiosRequestConfig  
-    ): OperationResponse<Paths.Saml2AuthenticateResponse.Responses.$200>
+    ): OperationResponse<any>
   }
   ['/auth/saml2/{provider}/logout-request']: {
     /**
