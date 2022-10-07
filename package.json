@@ -43,7 +43,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "test-pulumi": "./node_modules/.bin/jest --config pulumi/jest.config.ts pulumi/index.test.ts"
+    "test-pulumi": "./node_modules/.bin/jest --config pulumi/jest.config.ts pulumi/index.test.ts",
+    "generate-authgw-openapi": "docker run --rm -v $PWD:/local openapitools/openapi-generator-cli generate -i https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com/docs/openapi/authentication-gw.yml -g typescript-axios -o /local/src/api/generated-types/authgw --additional-properties=typescriptThreePlus=true"
   },
   "browserslist": {
     "production": [
