@@ -50,11 +50,7 @@ axiosInstance.interceptors.request.use(config => {
   if (config.url !== undefined && config.headers !== undefined) {
     if (authTokens && [OPEN_DATA_URL].includes(config.url)) {
       // The token that is used to authorize the user in the protected, external API queries
-      let authorizationToken = authTokens.idToken;
-      // The exception: Sinuna does not operate with idToken, use accessToken instead
-      if (provider === AuthProvider.SINUNA) {
-        authorizationToken = authTokens.accessToken;
-      }
+      const authorizationToken = authTokens.idToken;
 
       config.headers.Authorization = authorizationToken
         ? `Bearer ${authorizationToken}`
