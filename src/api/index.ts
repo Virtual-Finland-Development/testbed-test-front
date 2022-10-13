@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 // constants
+import { AuthGWClient } from './generated-types';
+
 import {
   appContextUrlEncoded,
   LOCAL_STORAGE_AUTH_PROVIDER,
@@ -39,11 +41,11 @@ const OPEN_DATA_BASE_URL =
     : 'http://localhost:3001';
 const OPEN_DATA_URL = `${OPEN_DATA_BASE_URL}/${OPEN_DATA_ENDPOINT_PATH}`;
 
-// 2
-/* const authGwClient = new AuthGWClient({
+const authGwClient = new AuthGWClient({
   BASE: AUTH_GW_ENDPOINT,
+  WITH_CREDENTIALS: true,
 });
-const authGw = authGwClient.default; */
+const AuthenticationGw = authGwClient.default;
 
 // Create axios instance for api service
 const axiosInstance = axios.create();
@@ -92,9 +94,6 @@ function directToAuthGwLogout(authProvider: AuthProvider) {
   );
 }
 
-// 1:  Promise<Paths.OpenIdAuthTokenRequest.Responses.$200>
-// 2:
-// 3:  Promise<?>
 async function getAuthTokens(
   authPayload: {
     loginCode: string;
@@ -103,23 +102,12 @@ async function getAuthTokens(
   authProvider: AuthProvider
 ) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openId' : 'saml2';
-  /* 
-  2: 
-  const response = await authGw[`${authRoute}AuthTokenRequest`](
+
+  const response = await AuthenticationGw[`${authRoute}AuthTokenRequest`](
     authProvider,
     authPayload
   );
-  return response; 
-  */
-
-  const response = await axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/auth-token-request`,
-    authPayload,
-    {
-      withCredentials: true,
-    }
-  );
-  return response.data;
+  return response;
 }
 
 async function getUserInfo(
