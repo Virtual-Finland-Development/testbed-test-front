@@ -37,6 +37,8 @@
     "@types/node": "^14",
     "mime": "^3.0.0",
     "openapi-client-axios-typegen": "^5.3.0",
+    "openapi-typescript": "^5.4.1",
+    "openapi-typescript-codegen": "^0.23.0",
     "ts-jest": "^29.0.1"
   },
   "scripts": {
@@ -45,7 +47,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "test-pulumi": "./node_modules/.bin/jest --config pulumi/jest.config.ts pulumi/index.test.ts",
-    "generate-authgw-openapi": "typegen https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com/docs/openapi/authentication-gw.yml > ./src/api/generated-types/authgw.d.ts"
+    "generate-authgw-openapi-1": "typegen https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com/docs/openapi/authentication-gw.yml > ./src/api/generated-types/1/authgw.d.ts",
+    "generate-authgw-openapi-2": "openapi --input https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com/docs/openapi/authentication-gw.yml --output ./src/api/generated-types/2/ --name AuthGWClient",
+    "generate-authgw-openapi-3": "openapi-typescript https://q88uo5prmh.execute-api.eu-north-1.amazonaws.com/docs/openapi/authentication-gw.yml --output ./src/api/generated-types/3/authgw-types.ts"
   },
   "browserslist": {
     "production": [
