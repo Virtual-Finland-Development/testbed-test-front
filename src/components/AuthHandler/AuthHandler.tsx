@@ -38,7 +38,7 @@ export default function AuthHandler() {
     async (authProvider: AuthProvider) => {
       try {
         // get token
-        const authTokens = await api.getAuthTokens(
+        const loggedInState = await api.logIn(
           {
             loginCode: loginCodeParam as string,
             appContext: appContextUrlEncoded,
@@ -46,25 +46,11 @@ export default function AuthHandler() {
           authProvider
         );
 
-        // get user email after token retrieval, response differs between auth providers
-        let userEmail;
-
-        const userInfoResponse = await api.getUserInfo(authProvider, {
-          accessToken: authTokens.accessToken!,
-          appContext: appContextUrlEncoded,
-        });
-
-        if (authProvider === AuthProvider.SINUNA) {
-          ({ email: userEmail } = userInfoResponse.data);
-        }
-
-        if (authProvider === AuthProvider.SUOMIFI) {
-          ({
-            profile: { email: userEmail },
-          } = userInfoResponse.data);
-        }
-
-        logIn(authProviderParam as AuthProvider, authTokens, userEmail);
+        logIn(
+          authProviderParam as AuthProvider,
+          loggedInState,
+          loggedInState.profileData.email
+        );
         navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
       } catch (error) {
         setError(error);
