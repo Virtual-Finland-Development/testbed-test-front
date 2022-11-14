@@ -30,13 +30,13 @@ const FIGURES_URL =
  * testbed-test-api endpoint, serverless AWS function that routes api call to testbed environment
  */
 const OPEN_DATA_PRODUCTION_ENDPOINT =
-  'https://9drrjton12.execute-api.eu-north-1.amazonaws.com';
-const OPEN_DATA_ENDPOINT_PATH = 'getPopulation'; // The data path
+  'https://huneftdaxlat67a2xval43rkzm0xyzuz.lambda-url.eu-north-1.on.aws'; // testbed-api:staging
+const OPEN_DATA_ENDPOINT_PATH = 'testbed/productizers/get-population'; // The data path
 
 const OPEN_DATA_BASE_URL =
   process.env.NODE_ENV === 'production'
     ? OPEN_DATA_PRODUCTION_ENDPOINT
-    : 'http://localhost:3001';
+    : 'http://localhost:3003';
 const OPEN_DATA_URL = `${OPEN_DATA_BASE_URL}/${OPEN_DATA_ENDPOINT_PATH}`;
 
 // Create axios instance for api service
