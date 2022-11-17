@@ -1,6 +1,18 @@
 import { rest } from 'msw';
 import api from '../api';
 
+const mockUser = {
+  id: '12312-123123-asdasd',
+  firstName: 'Donald',
+  lastName: 'Duck',
+  address: '1313 Webfoot Street, Duckburg',
+  jobTitles: ['Developer'],
+  regions: ['01', '02'],
+  created: '2022-10-12T12:05:46.6262126Z',
+  modified: '2022-10-12T12:05:46.6262127Z',
+  immigrationDataConsent: true,
+};
+
 /**
  * msw handlers to override HTTP request for testing
  */
@@ -41,15 +53,12 @@ export const handlers = [
     );
   }),
   rest.post(
-    `${api.AUTH_GW_ENDPOINT}/auth/openid/sinuna/auth-token-request`,
+    `${api.AUTH_GW_ENDPOINT}/auth/openid/sinuna/login-request`,
     (req, res, ctx) => {
-      return res(ctx.json({ token: '123-random-token' }));
+      return res(ctx.json(mockUser));
     }
   ),
-  rest.post(
-    `${api.AUTH_GW_ENDPOINT}/auth/openid/sinuna/user-info-request`,
-    (req, res, ctx) => {
-      return res(ctx.json({ email: 'aku.ankka@email.com' }));
-    }
-  ),
+  rest.post(`${api.AUTH_GW_ENDPOINT}/authorize`, (req, res, ctx) => {
+    return res();
+  }),
 ];

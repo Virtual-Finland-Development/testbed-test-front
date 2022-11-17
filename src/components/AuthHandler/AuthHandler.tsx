@@ -49,7 +49,7 @@ export default function AuthHandler() {
         logIn(
           authProviderParam as AuthProvider,
           loggedInState,
-          loggedInState.profileData.email
+          loggedInState.profileData?.email
         );
         navigate(localStorage.getItem(LOCAL_STORAGE_ROUTE_NAME) || '/');
       } catch (error) {

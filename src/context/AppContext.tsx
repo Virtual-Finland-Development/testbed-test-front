@@ -153,7 +153,8 @@ function AppProvider({ children }: AppProviderProps) {
   const checkUserInfoStatus = useCallback(
     async (authProvider: AuthProvider, loggedInState: LoggedInState) => {
       try {
-        api.verifyLogin(authProvider, loggedInState);
+        await api.verifyLogin(authProvider, loggedInState);
+        logIn(authProvider, loggedInState, loggedInState.profileData?.email);
         dispatch({ type: ActionTypes.SET_LOADING, loading: false });
       } catch (error) {
         // if getUserInfo throws 401 error, it means sinuna session expired and user needs to be logged in again
@@ -175,7 +176,7 @@ function AppProvider({ children }: AppProviderProps) {
         }
       }
     },
-    [location.pathname, logOut, navigate]
+    [location.pathname, logIn, logOut, navigate]
   );
 
   /**
