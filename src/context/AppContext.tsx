@@ -9,10 +9,9 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 
 // constants
-import { appContextUrlEncoded } from '../constants';
 
 // api
-import api, { AuthProvider, AuthTokens } from '../api';
+import api, { AuthProvider, LoggedInState } from '../api';
 
 // constants
 import {
@@ -53,7 +52,7 @@ interface AppContextInterface {
   loading: boolean;
   logIn: (
     authProvider: AuthProvider,
-    autTokens: AuthTokens,
+    loggedInState: LoggedInState,
     userEmail: string
   ) => void;
   logOut: () => void;
@@ -123,10 +122,14 @@ function AppProvider({ children }: AppProviderProps) {
    * Handle login. Set user as authenticated, set dataType. Store logged in state and appType to local storage.
    */
   const logIn = useCallback(
-    (authProvider: AuthProvider, tokens: AuthTokens, userEmail: string) => {
+    (
+      authProvider: AuthProvider,
+      loggedInState: LoggedInState,
+      userEmail: string
+    ) => {
       dispatch({ type: ActionTypes.LOG_IN });
       localStorage.setItem(LOCAL_STORAGE_AUTH_PROVIDER, authProvider);
-      JSONLocalStorage.set(LOCAL_STORAGE_AUTH_TOKENS, tokens);
+      JSONLocalStorage.set(LOCAL_STORAGE_AUTH_TOKENS, loggedInState);
       // localStorage.setItem(LOCAL_STORAGE_USER_EMAIL, userEmail);
     },
     []
@@ -148,26 +151,9 @@ function AppProvider({ children }: AppProviderProps) {
    * If token is still valid, response will hold user email, otherwise it throws 401.
    */
   const checkUserInfoStatus = useCallback(
-    async (authProvider: AuthProvider, tokens: AuthTokens) => {
+    async (authProvider: AuthProvider, loggedInState: LoggedInState) => {
       try {
-        const userInfoResponse = await api.getUserInfo(
-          authProvider as AuthProvider,
-          {
-            accessToken: tokens.accessToken,
-            appContext: appContextUrlEncoded,
-          }
-        );
-
-        // response differs between sinuna / suomifi
-        let email;
-
-        if (authProvider === AuthProvider.SINUNA) {
-          ({ email } = userInfoResponse.data);
-        } else if (authProvider === AuthProvider.SUOMIFI) {
-          ({ email } = userInfoResponse.data.profile);
-        }
-
-        logIn(authProvider, tokens, email);
+        api.verifyLogin(authProvider, loggedInState);
         dispatch({ type: ActionTypes.SET_LOADING, loading: false });
       } catch (error) {
         // if getUserInfo throws 401 error, it means sinuna session expired and user needs to be logged in again
@@ -189,7 +175,7 @@ function AppProvider({ children }: AppProviderProps) {
         }
       }
     },
-    [logIn, location.pathname, logOut, navigate]
+    [location.pathname, logOut, navigate]
   );
 
   /**

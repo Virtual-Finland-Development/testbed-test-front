@@ -13,9 +13,12 @@ export enum AuthProvider {
   SUOMIFI = 'suomifi',
 }
 
-export type AuthTokens = {
-  accessToken: string; // UserInfoRequest
+export type LoggedInState = {
   idToken: string; // Other requests (except for Sinuna, which uses accessToken instead)
+  profileData: {
+    email: string;
+    [key: string]: any;
+  };
 };
 
 const AUTH_GW_ENDPOINT =
@@ -45,12 +48,12 @@ const axiosInstance = axios.create();
 // Axios request interceptor. Pass token to request Authorization for selected routes, if found.
 axiosInstance.interceptors.request.use(config => {
   const provider = localStorage.getItem(LOCAL_STORAGE_AUTH_PROVIDER);
-  const authTokens = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS);
+  const loggedInState = JSONLocalStorage.get(LOCAL_STORAGE_AUTH_TOKENS);
 
   if (config.url !== undefined && config.headers !== undefined) {
-    if (authTokens && [OPEN_DATA_URL].includes(config.url)) {
+    if (loggedInState && [OPEN_DATA_URL].includes(config.url)) {
       // The token that is used to authorize the user in the protected, external API queries
-      const authorizationToken = authTokens.idToken;
+      const authorizationToken = loggedInState.idToken;
 
       config.headers.Authorization = authorizationToken
         ? `Bearer ${authorizationToken}`
@@ -70,7 +73,7 @@ axiosInstance.interceptors.request.use(config => {
 function directToAuthGwLogin(authProvider: AuthProvider) {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   window.location.assign(
-    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/login-request?appContext=${appContextUrlEncoded}`
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/authentication-request?appContext=${appContextUrlEncoded}`
   );
 }
 
@@ -82,16 +85,16 @@ function directToAuthGwLogout(authProvider: AuthProvider) {
   );
 }
 
-async function getAuthTokens(
+async function logIn(
   authPayload: {
     loginCode: string;
     appContext: string;
   },
   authProvider: AuthProvider
-): Promise<AuthTokens> {
+): Promise<LoggedInState> {
   const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
   const response = await axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/auth-token-request`,
+    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/login-request`,
     authPayload,
     {
       withCredentials: true,
@@ -100,18 +103,22 @@ async function getAuthTokens(
   return response.data;
 }
 
-async function getUserInfo(
+/**
+ * throws 401 if not authorized
+ *
+ * @param authProvider
+ * @param loggedInState
+ */
+async function verifyLogin(
   authProvider: AuthProvider,
-  payload: { accessToken: string; appContext: string }
+  loggedInState: LoggedInState
 ) {
-  const authRoute = authProvider === AuthProvider.SINUNA ? 'openid' : 'saml2';
-  return axiosInstance.post(
-    `${AUTH_GW_ENDPOINT}/auth/${authRoute}/${authProvider}/user-info-request`,
-    payload,
-    {
-      withCredentials: true,
-    }
-  );
+  await axiosInstance.post(`${AUTH_GW_ENDPOINT}/authorize`, null, {
+    headers: {
+      Authorization: `Bearer ${loggedInState.idToken}`,
+      'X-authorization-provider': authProvider,
+    },
+  });
 }
 
 /**
@@ -130,10 +137,10 @@ const api = {
   OPEN_DATA_URL,
   directToAuthGwLogin,
   directToAuthGwLogout,
-  getAuthTokens,
-  getUserInfo,
+  logIn,
   getKeyFigures,
   getData,
+  verifyLogin,
 };
 
 export default api;
